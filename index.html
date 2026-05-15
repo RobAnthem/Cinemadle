@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: radial-gradient(circle at 50% 0%, #1e2024 0%, #0a0b0c 100%);
@@ -25,6 +25,7 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
+        /* ── Emoji board ── */
         .emoji-box {
             font-size: 3.5rem;
             letter-spacing: 0.5rem;
@@ -38,9 +39,10 @@
             text-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
+        /* ── Guess-row grid ── */
         .feedback-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 0.75rem;
             width: 100%;
         }
@@ -57,13 +59,13 @@
             font-weight: 700;
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: transform 0.3s ease;
-            height: 6rem; 
+            height: 6rem;
             width: 100%;
             overflow: hidden;
         }
 
         .box-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             opacity: 0.4;
@@ -80,25 +82,41 @@
             padding: 0 4px;
         }
 
-        .status-correct { background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #4ade80; }
-        .status-partial { background: rgba(234, 179, 8, 0.15); border-color: rgba(234, 179, 8, 0.3); color: #facc15; }
-        .status-wrong { background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08); color: #94a3b8; }
+        .status-correct { background: rgba(34, 197, 94, 0.15);  border-color: rgba(34, 197, 94, 0.3);  color: #4ade80; }
+        .status-partial { background: rgba(234, 179, 8, 0.15);  border-color: rgba(234, 179, 8, 0.3);  color: #facc15; }
+        .status-wrong   { background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08); color: #94a3b8; }
 
-        .guess-row {
-            animation: slideUp 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
+        /* ── Animations ── */
+        .guess-row { animation: slideUp 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        @keyframes fadeInOut {
+            0%          { opacity: 0; transform: translate(-50%, -20px); }
+            15%, 85%    { opacity: 1; transform: translate(-50%, 0); }
+            100%        { opacity: 0; transform: translate(-50%, -20px); }
+        }
 
+        /* ── Progress bar ── */
+        .progress-track {
+            height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #eab308, #f97316);
+            transition: width 0.6s cubic-bezier(0.65,0,0.35,1);
+        }
+
+        /* ── Summary pills ── */
         .summary-pill {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
             padding: 4px 12px;
             border-radius: 99px;
             font-size: 0.75rem;
@@ -106,6 +124,7 @@
             text-transform: uppercase;
         }
 
+        /* ── Notification toast ── */
         .notification {
             position: fixed;
             top: 30px;
@@ -121,442 +140,573 @@
             animation: fadeInOut 2.5s forwards;
         }
 
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, -20px); }
-            15%, 85% { opacity: 1; transform: translate(-50%, 0); }
-            100% { opacity: 0; transform: translate(-50%, -20px); }
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        /* ── Difficulty badge colours ── */
+        .badge-easy       { color: #4ade80; }
+        .badge-hard       { color: #fb923c; }
+        .badge-impossible { color: #f87171; }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-4xl mx-auto space-y-8">
-        <header class="text-center space-y-4">
-            <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-yellow-300 via-yellow-500 to-orange-600">
-                Cinemadle
-            </h1>
-            <p id="subHeader" class="text-white/30 text-sm uppercase tracking-[0.4em] font-bold">The Ultimate Movie Guessing Challenge</p>
-        </header>
+<div class="max-w-4xl mx-auto space-y-8">
 
-        <!-- Loading State View -->
-        <div id="setupView" class="glass-card p-12 text-center space-y-8 border-dashed border-2 border-white/10">
-            <div class="space-y-4">
-                <div class="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto animate-pulse">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                </div>
-                <h2 class="text-3xl font-bold">Initializing Engine</h2>
-                <p id="loadingStatus" class="text-gray-400">Fetching cinematic data from local directory...</p>
+    <!-- ── Header ── -->
+    <header class="text-center space-y-4">
+        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-yellow-300 via-yellow-500 to-orange-600">
+            Cinemadle
+        </h1>
+        <p id="subHeader" class="text-white/30 text-sm uppercase tracking-[0.4em] font-bold">The Ultimate Movie Guessing Challenge</p>
+    </header>
+
+    <!-- ── Loading view ── -->
+    <div id="setupView" class="glass-card p-12 text-center space-y-8 border-dashed border-2 border-white/10">
+        <div class="space-y-4">
+            <div class="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
             </div>
+            <h2 class="text-3xl font-bold">Initializing Engine</h2>
+            <p id="loadingStatus" class="text-gray-400">Fetching cinematic data from local directory...</p>
         </div>
+    </div>
 
-        <!-- Difficulty Selection View -->
-        <div id="difficultyView" class="hidden glass-card p-12 text-center space-y-10">
-            <h2 class="text-4xl font-bold tracking-tight">Select Difficulty</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <button onclick="setDifficulty('Easy Mode')" class="group p-8 rounded-3xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-all hover:-translate-y-1">
-                    <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🎬</div>
-                    <div class="font-black text-green-500 uppercase tracking-widest text-xs mb-1">Easy</div>
-                    <div class="text-xs text-gray-500">Global Hits</div>
-                </button>
-                <button onclick="setDifficulty('Hard Mode')" class="group p-8 rounded-3xl border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 transition-all hover:-translate-y-1">
-                    <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🎭</div>
-                    <div class="font-black text-orange-500 uppercase tracking-widest text-xs mb-1">Hard</div>
-                    <div class="text-xs text-gray-500">Cinephile Picks</div>
-                </button>
-                <button onclick="setDifficulty('Impossible Mode')" class="group p-8 rounded-3xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all hover:-translate-y-1">
-                    <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🕵️‍♂️</div>
-                    <div class="font-black text-red-500 uppercase tracking-widest text-xs mb-1">Impossible</div>
-                    <div class="text-xs text-gray-500">Obscure Gems</div>
-                </button>
-            </div>
+    <!-- ── Difficulty selection ── -->
+    <div id="difficultyView" class="hidden glass-card p-12 text-center space-y-10">
+        <h2 class="text-4xl font-bold tracking-tight">Select Difficulty</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <button onclick="setDifficulty('Easy Mode')" class="group p-8 rounded-3xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-all hover:-translate-y-1">
+                <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🎬</div>
+                <div class="font-black text-green-500 uppercase tracking-widest text-xs mb-1">Easy</div>
+                <div class="text-xs text-gray-500">Global Hits</div>
+            </button>
+            <button onclick="setDifficulty('Hard Mode')" class="group p-8 rounded-3xl border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 transition-all hover:-translate-y-1">
+                <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🎭</div>
+                <div class="font-black text-orange-500 uppercase tracking-widest text-xs mb-1">Hard</div>
+                <div class="text-xs text-gray-500">Cinephile Picks</div>
+            </button>
+            <button onclick="setDifficulty('Impossible Mode')" class="group p-8 rounded-3xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all hover:-translate-y-1">
+                <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🕵️‍♂️</div>
+                <div class="font-black text-red-500 uppercase tracking-widest text-xs mb-1">Impossible</div>
+                <div class="text-xs text-gray-500">Obscure Gems</div>
+            </button>
         </div>
+    </div>
 
-        <div id="gameView" class="hidden space-y-6">
-            <div class="flex justify-between items-end px-2">
-                <div class="flex gap-4">
-                    <div class="glass-card px-6 py-4 flex flex-col">
-                        <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Guesses Left</span>
-                        <span id="guessesLeft" class="text-3xl font-black text-yellow-500 leading-none">10</span>
-                    </div>
-                    <div id="diffBadge" class="glass-card px-6 py-4 flex flex-col justify-center bg-white/5 border-none">
-                        <span id="currentDiffName" class="text-[10px] font-black tracking-widest text-white/40">EASY</span>
-                    </div>
+    <!-- ── Main game view ── -->
+    <div id="gameView" class="hidden space-y-6">
+
+        <!-- Top bar -->
+        <div class="flex justify-between items-end px-2">
+            <div class="flex gap-3 items-end">
+                <div class="glass-card px-6 py-4 flex flex-col">
+                    <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Guesses Left</span>
+                    <span id="guessesLeft" class="text-3xl font-black text-yellow-500 leading-none">10</span>
                 </div>
-                <div class="glass-card px-6 py-4 flex flex-col items-end">
+                <div class="glass-card px-6 py-4 flex flex-col justify-center bg-white/5 border-none min-w-[90px]">
+                    <span class="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-0.5">Difficulty</span>
+                    <span id="currentDiffName" class="text-[11px] font-black tracking-widest text-white/40">EASY</span>
+                </div>
+            </div>
+            <div class="flex gap-3 items-end">
+                <div class="glass-card px-5 py-4 flex flex-col items-end">
                     <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Win Streak</span>
                     <span id="streakCount" class="text-3xl font-black text-green-500 leading-none">0</span>
                 </div>
-            </div>
-
-            <div id="summaryPanel" class="hidden grid grid-cols-3 gap-3">
-                <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
-                    <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Genres</span>
-                    <div id="genreSummary" class="flex flex-wrap justify-center gap-1.5"></div>
-                </div>
-                <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
-                    <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Year</span>
-                    <div id="yearSummary" class="flex justify-center"></div>
-                </div>
-                <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
-                    <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Studio</span>
-                    <div id="studioSummary" class="flex justify-center text-center"></div>
-                </div>
-            </div>
-
-            <!-- Main Emoji Board -->
-            <div class="glass-card p-10 md:p-16 text-center relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-b from-yellow-500/5 to-transparent pointer-events-none"></div>
-                <div id="emojiDisplay" class="emoji-box"></div>
-                
-                <div id="hintsContainer" class="hidden mt-10 pt-8 border-t border-white/5 space-y-6">
-                    <div id="hintText" class="text-sm md:text-base italic text-gray-400 bg-white/5 p-5 rounded-2xl border border-white/5"></div>
-                    <div id="hintButtons" class="flex flex-wrap justify-center gap-4">
-                        <button onclick="revealHint('abstract')" id="btnAbstract" class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30">
-                            VIBE HINT (-1)
-                        </button>
-                        <button onclick="revealHint('advanced')" id="btnAdvanced" class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30">
-                            CONTEXT HINT (-2)
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Input Box -->
-            <div class="relative">
-                <input type="text" id="movieInput" 
-                    class="w-full bg-white/5 border border-white/10 rounded-3xl px-8 py-6 outline-none focus:border-yellow-500/50 transition-all text-xl md:text-2xl font-medium placeholder-white/20"
-                    placeholder="Search for a movie title..." autocomplete="off">
-                <div id="autocompleteResults" class="absolute z-50 w-full mt-3 glass-card max-h-96 overflow-y-auto hidden custom-scrollbar"></div>
-            </div>
-
-            <!-- History -->
-            <div class="space-y-4 pt-4">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-2">Guess Log</h3>
-                <div id="guessHistory" class="space-y-3"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div id="gameOverModal" class="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[100] flex items-center justify-center hidden p-6">
-        <div class="glass-card max-w-lg w-full p-10 text-center space-y-10 border-white/10">
-            <h2 id="modalTitle" class="text-5xl font-black italic tracking-tighter">RESULT</h2>
-            <div class="space-y-2">
-                <p class="text-white/30 text-xs font-black uppercase tracking-[0.3em]">The Movie Was</p>
-                <p id="targetMovieTitle" class="text-4xl font-black text-white"></p>
-                <div id="targetMovieMeta" class="bg-white/5 p-4 rounded-2xl text-[11px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed"></div>
-            </div>
-            <div class="flex flex-col gap-3">
-                <button onclick="startNewGame()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-5 rounded-2xl transition-all text-lg">
-                    NEXT LEVEL
-                </button>
-                <button onclick="showDifficultySelect()" class="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-2xl text-[10px] uppercase tracking-widest opacity-40">
-                    CHANGE DIFFICULTY
+                <button onclick="showDifficultySelect()" class="glass-card px-4 py-4 text-[9px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors h-full">
+                    ⇄
                 </button>
             </div>
         </div>
+
+        <!-- Progress bar -->
+        <div class="px-2">
+            <div class="progress-track">
+                <div id="progressFill" class="progress-fill" style="width:0%"></div>
+            </div>
+        </div>
+
+        <!-- Summary panel -->
+        <div id="summaryPanel" class="hidden grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
+                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Genres</span>
+                <div id="genreSummary" class="flex flex-wrap justify-center gap-1.5"></div>
+            </div>
+            <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
+                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Year</span>
+                <div id="yearSummary" class="flex justify-center"></div>
+            </div>
+            <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
+                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Studio</span>
+                <div id="studioSummary" class="flex justify-center text-center text-xs"></div>
+            </div>
+            <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
+                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Critic Score</span>
+                <div id="scoreSummary" class="flex justify-center"></div>
+            </div>
+        </div>
+
+        <!-- Emoji board + hints -->
+        <div class="glass-card p-10 md:p-16 text-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-yellow-500/5 to-transparent pointer-events-none"></div>
+            <div id="emojiDisplay" class="emoji-box"></div>
+
+            <div id="hintsContainer" class="hidden mt-10 pt-8 border-t border-white/5 space-y-6">
+                <div id="hintText" class="text-sm md:text-base italic text-gray-400 bg-white/5 p-5 rounded-2xl border border-white/5 text-left leading-relaxed"></div>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button onclick="revealHint('vibe')" id="btnVibe"
+                        class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">
+                        VIBE HINT &minus;1
+                    </button>
+                    <button onclick="revealHint('context')" id="btnContext"
+                        class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">
+                        CONTEXT HINT &minus;2
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search input -->
+        <div class="relative">
+            <input type="text" id="movieInput"
+                class="w-full bg-white/5 border border-white/10 rounded-3xl px-8 py-6 outline-none focus:border-yellow-500/50 transition-all text-xl md:text-2xl font-medium placeholder-white/20"
+                placeholder="Search for a movie title..." autocomplete="off">
+            <div id="autocompleteResults" class="absolute z-50 w-full mt-3 glass-card max-h-96 overflow-y-auto hidden custom-scrollbar"></div>
+        </div>
+
+        <!-- Guess log column headers -->
+        <div class="px-1">
+            <div class="feedback-grid text-[9px] font-black uppercase tracking-widest text-white/20 px-1">
+                <div class="text-center">Title</div>
+                <div class="text-center">Genre</div>
+                <div class="text-center">Year</div>
+                <div class="text-center">Studio</div>
+                <div class="text-center">Critic %</div>
+            </div>
+        </div>
+
+        <!-- Guess history -->
+        <div class="space-y-4">
+            <div id="guessHistory" class="space-y-3"></div>
+        </div>
     </div>
+</div>
 
-    <script>
-        let movieDB = [];
-        let difficultyMap = {};
-        let currentDifficulty = 'Easy Mode';
-        let targetMovie = null;
-        let guessesLeft = 10;
-        let revealCount = 1;
-        let currentEmojis = [];
-        let guessedTitles = new Set();
-        let foundGenres = new Set();
-        let yearBounds = { min: null, max: null };
+<!-- ── Game-over modal ── -->
+<div id="gameOverModal" class="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[100] flex items-center justify-center hidden p-6">
+    <div class="glass-card max-w-lg w-full p-10 text-center space-y-10 border-white/10">
+        <h2 id="modalTitle" class="text-5xl font-black italic tracking-tighter">RESULT</h2>
+        <div class="space-y-3">
+            <p class="text-white/30 text-xs font-black uppercase tracking-[0.3em]">The Movie Was</p>
+            <p id="targetMovieTitle" class="text-4xl font-black text-white"></p>
+            <div id="targetMovieMeta" class="bg-white/5 p-4 rounded-2xl text-[11px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed"></div>
+        </div>
+        <div class="flex flex-col gap-3">
+            <button onclick="startNewGame()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-5 rounded-2xl transition-all text-lg">
+                NEXT LEVEL
+            </button>
+            <button onclick="showDifficultySelect()" class="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-2xl text-[10px] uppercase tracking-widest opacity-40 hover:opacity-80 transition-all">
+                CHANGE DIFFICULTY
+            </button>
+        </div>
+    </div>
+</div>
 
-        const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+<script>
+    // ── State ──
+    let movieDB       = [];
+    let difficultyMap = {};
+    let currentDifficulty = 'Easy Mode';
+    let targetMovie   = null;
+    let guessesLeft   = 10;
+    let revealCount   = 1;
+    let currentEmojis = [];
+    let guessedTitles = new Set();
+    let foundGenres   = new Set();
+    let yearBounds    = { min: null, max: null };
+    let hintVibeUsed    = false;
+    let hintContextUsed = false;
 
-        // Utility to handle spaces and formatting in CSV titles for matching
-        const cleanTitle = (str) => str ? str.trim() : "";
+    const MAX_GUESSES = 10;
+    const segmenter   = new Intl.Segmenter('en', { granularity: 'grapheme' });
 
-        window.onload = async function() {
-            try {
-                const statusEl = document.getElementById('loadingStatus');
-                
-                statusEl.textContent = "Loading Movie Database (movies.csv)...";
-                const mainResponse = await fetch('movies.csv');
-                if (!mainResponse.ok) throw new Error('Could not find movies.csv');
-                const mainCsvText = await mainResponse.text();
-                
-                statusEl.textContent = "Loading Difficulty Map (difficulty.csv)...";
-                const diffResponse = await fetch('difficulty.csv');
-                if (!diffResponse.ok) throw new Error('Could not find difficulty.csv');
-                const diffCsvText = await diffResponse.text();
+    // ── Helpers ──
+    const cleanTitle      = str => str ? str.trim() : '';
+    const normalizeString = str => str ? str.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 
-                // Process Diff Map first to have it ready for lookup
-                Papa.parse(diffCsvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: (results) => {
-                        results.data.forEach(row => { 
-                            if (row.Title) difficultyMap[cleanTitle(row.Title)] = row.Difficulty; 
-                        });
-                        
-                        // Process Main DB and join with difficulty
-                        Papa.parse(mainCsvText, {
-                            header: true,
-                            skipEmptyLines: true,
-                            complete: (results) => {
-                                movieDB = results.data.map(m => {
-                                    const title = cleanTitle(m.Title);
-                                    return {
-                                        ...m,
-                                        Title: title,
-                                        Year: m['Release Date'] ? parseInt(m['Release Date'].match(/\d{4}/)?.[0]) : null,
-                                        // Fix for Emoji loading: looking for specific header "Vibe Emojis"
-                                        Emojis: m['Vibe Emojis'] || m.Emojis || "🎬",
-                                        Difficulty: difficultyMap[title] || "Unknown"
-                                    };
-                                }).filter(m => m.Title);
+    function showNotification(msg, colour = '#ef4444') {
+        const div = document.createElement('div');
+        div.className = 'notification';
+        div.style.background = colour;
+        div.textContent = msg;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 2600);
+    }
 
-                                if (movieDB.length > 0) {
-                                    setTimeout(showDifficultySelect, 800);
-                                } else {
-                                    statusEl.textContent = "Error: Database is empty.";
+    // ── Load CSVs ──
+    window.onload = async function () {
+        const statusEl = document.getElementById('loadingStatus');
+        try {
+            statusEl.textContent = 'Loading Movie Database (movies.csv)…';
+            const [mainRes, diffRes] = await Promise.all([fetch('movies.csv'), fetch('difficulty.csv')]);
+            if (!mainRes.ok) throw new Error('Could not find movies.csv');
+            if (!diffRes.ok) throw new Error('Could not find difficulty.csv');
+            const [mainText, diffText] = await Promise.all([mainRes.text(), diffRes.text()]);
+
+            statusEl.textContent = 'Parsing data…';
+
+            // Build difficulty map: Title → Difficulty string
+            Papa.parse(diffText, {
+                header: true, skipEmptyLines: true,
+                complete({ data }) {
+                    data.forEach(row => {
+                        if (row.Title) difficultyMap[cleanTitle(row.Title)] = (row.Difficulty || '').trim();
+                    });
+
+                    // Build movie DB
+                    Papa.parse(mainText, {
+                        header: true, skipEmptyLines: true,
+                        complete({ data }) {
+                            movieDB = data.map(m => {
+                                const title = cleanTitle(m.Title);
+                                // Parse year from ISO date or bare year
+                                let year = null;
+                                if (m['Release Date']) {
+                                    const match = m['Release Date'].match(/\d{4}/);
+                                    if (match) year = parseInt(match[0]);
                                 }
+                                return {
+                                    Title:        title,
+                                    Genres:       (m.Genres || '').trim(),
+                                    Year:         year,
+                                    Studio:       (m.Studio || '').trim(),
+                                    CriticScore:  m['Critic Score'] ? parseInt(m['Critic Score']) || null : null,
+                                    AudienceScore:m['Audience Score'] && m['Audience Score'] !== 'N/A' ? parseInt(m['Audience Score']) || null : null,
+                                    Hint:         (m.Hint || '').trim(),
+                                    Description:  (m.Description || '').trim(),
+                                    Emojis:       (m['Vibe Emojis'] || '').trim(),
+                                    Difficulty:   difficultyMap[title] || 'Unknown',
+                                };
+                            }).filter(m => m.Title && m.Difficulty !== 'Unknown');
+
+                            if (movieDB.length > 0) {
+                                setTimeout(showDifficultySelect, 600);
+                            } else {
+                                statusEl.textContent = 'Error: database is empty after parsing.';
                             }
-                        });
-                    }
-                });
-
-            } catch (err) {
-                console.error(err);
-                document.getElementById('loadingStatus').innerHTML = 
-                    `<span class="text-red-500 font-bold">Failed to load assets.</span><br>
-                     <span class="text-xs opacity-50">Ensure 'movies.csv' and 'difficulty.csv' exist in the root folder.</span>`;
-            }
-        };
-
-        function normalizeString(str) {
-            if (!str) return '';
-            return str.toLowerCase().replace(/[^a-z0-9]/g, '');
-        }
-
-        function showNotification(msg) {
-            const div = document.createElement('div');
-            div.className = 'notification';
-            div.textContent = msg;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 2500);
-        }
-
-        function showDifficultySelect() {
-            document.getElementById('setupView').classList.add('hidden');
-            document.getElementById('gameView').classList.add('hidden');
-            document.getElementById('gameOverModal').classList.add('hidden');
-            document.getElementById('difficultyView').classList.remove('hidden');
-        }
-
-        function setDifficulty(diff) {
-            currentDifficulty = diff;
-            document.getElementById('difficultyView').classList.add('hidden');
-            document.getElementById('gameView').classList.remove('hidden');
-            document.getElementById('currentDiffName').textContent = diff.split(' ')[0];
-            startNewGame();
-        }
-
-        function getStreak() { return parseInt(localStorage.getItem(`streak_${currentDifficulty}`)) || 0; }
-        function setStreak(val) { localStorage.setItem(`streak_${currentDifficulty}`, val); document.getElementById('streakCount').textContent = val; }
-
-        function startNewGame() {
-            guessesLeft = 10;
-            revealCount = 1;
-            foundGenres = new Set();
-            yearBounds = { min: null, max: null };
-            guessedTitles = new Set();
-            
-            const pool = movieDB.filter(m => m.Difficulty === currentDifficulty);
-            if (pool.length === 0) {
-                showNotification("No movies found for this difficulty in the database!");
-                return;
-            }
-            targetMovie = pool[Math.floor(Math.random() * pool.length)];
-            
-            // Accessing the correct field mapped during load
-            const emojiStr = targetMovie.Emojis || "";
-            currentEmojis = Array.from(segmenter.segment(emojiStr), s => s.segment);
-            
-            document.getElementById('gameOverModal').classList.add('hidden');
-            document.getElementById('summaryPanel').classList.add('hidden');
-            document.getElementById('genreSummary').innerHTML = '';
-            document.getElementById('yearSummary').innerHTML = '';
-            document.getElementById('studioSummary').innerHTML = '';
-            document.getElementById('guessHistory').innerHTML = '';
-            document.getElementById('movieInput').value = '';
-            document.getElementById('movieInput').disabled = false;
-            document.getElementById('hintsContainer').classList.add('hidden');
-            document.getElementById('hintText').textContent = '';
-            document.getElementById('btnAbstract').disabled = false;
-            document.getElementById('btnAdvanced').disabled = false;
-            document.getElementById('streakCount').textContent = getStreak();
-            
-            updateUI();
-        }
-
-        function updateUI() {
-            document.getElementById('guessesLeft').textContent = guessesLeft;
-            const visible = currentEmojis.slice(0, Math.min(revealCount, currentEmojis.length));
-            document.getElementById('emojiDisplay').innerHTML = visible.map(e => `<span>${e}</span>`).join('');
-            
-            if (guessesLeft <= 5) {
-                document.getElementById('hintsContainer').classList.remove('hidden');
-            }
-        }
-
-        function updateGlobalSummaries(guessedMovie) {
-            document.getElementById('summaryPanel').classList.remove('hidden');
-            
-            const targetGenres = (targetMovie.Genres || "").split(',').map(g => g.trim().toLowerCase());
-            (guessedMovie.Genres || "").split(',').map(g => g.trim().toLowerCase()).forEach(g => {
-                if (targetGenres.includes(g)) foundGenres.add(g);
+                        }
+                    });
+                }
             });
-            if (foundGenres.size > 0) {
-                document.getElementById('genreSummary').innerHTML = Array.from(foundGenres).map(g => `<span class="summary-pill bg-green-500/10 text-green-400 border-green-500/20">${g}</span>`).join('');
-            }
-            
-            if (guessedMovie.Year && targetMovie.Year) {
-                if (guessedMovie.Year < targetMovie.Year) yearBounds.min = Math.max(yearBounds.min || 0, guessedMovie.Year);
-                else if (guessedMovie.Year > targetMovie.Year) yearBounds.max = Math.min(yearBounds.max || 3000, guessedMovie.Year);
-                else { yearBounds.min = targetMovie.Year; yearBounds.max = targetMovie.Year; }
-            }
-            let yearText = '';
-            if (yearBounds.min === yearBounds.max && yearBounds.min) yearText = `<span class="summary-pill bg-green-500/20 text-green-400">Fixed: ${targetMovie.Year}</span>`;
-            else if (yearBounds.min || yearBounds.max) yearText = `<span class="summary-pill text-yellow-500">${yearBounds.min || '???'} - ${yearBounds.max || '???'}</span>`;
-            if (yearText) document.getElementById('yearSummary').innerHTML = yearText;
+        } catch (err) {
+            console.error(err);
+            statusEl.innerHTML = `<span class="text-red-500 font-bold">Failed to load: ${err.message}</span><br>
+                <span class="text-xs opacity-50">Ensure movies.csv and difficulty.csv are in the same folder as this file.</span>`;
+        }
+    };
 
-            if (guessedMovie.Studio?.trim() === targetMovie.Studio?.trim()) {
-                document.getElementById('studioSummary').innerHTML = `<span class="summary-pill bg-blue-500/20 text-blue-400">${targetMovie.Studio}</span>`;
-            }
+    // ── Views ──
+    function showDifficultySelect() {
+        document.getElementById('setupView').classList.add('hidden');
+        document.getElementById('gameView').classList.add('hidden');
+        document.getElementById('gameOverModal').classList.add('hidden');
+        document.getElementById('difficultyView').classList.remove('hidden');
+    }
+
+    function setDifficulty(diff) {
+        currentDifficulty = diff;
+        document.getElementById('difficultyView').classList.add('hidden');
+        document.getElementById('gameView').classList.remove('hidden');
+
+        const labels = { 'Easy Mode': 'EASY', 'Hard Mode': 'HARD', 'Impossible Mode': 'IMPOSSIBLE' };
+        const classes = { 'Easy Mode': 'badge-easy', 'Hard Mode': 'badge-hard', 'Impossible Mode': 'badge-impossible' };
+        const el = document.getElementById('currentDiffName');
+        el.textContent = labels[diff] || diff;
+        el.className = `text-[11px] font-black tracking-widest ${classes[diff] || ''}`;
+
+        startNewGame();
+    }
+
+    // ── Streak ──
+    function getStreak() { return parseInt(localStorage.getItem(`cinemadle_streak_${currentDifficulty}`)) || 0; }
+    function setStreak(v) {
+        localStorage.setItem(`cinemadle_streak_${currentDifficulty}`, v);
+        document.getElementById('streakCount').textContent = v;
+    }
+
+    // ── New game ──
+    function startNewGame() {
+        guessesLeft = MAX_GUESSES;
+        revealCount = 1;
+        foundGenres = new Set();
+        yearBounds  = { min: null, max: null };
+        guessedTitles = new Set();
+        hintVibeUsed    = false;
+        hintContextUsed = false;
+
+        const pool = movieDB.filter(m => m.Difficulty === currentDifficulty);
+        if (!pool.length) { showNotification('No movies for this difficulty!'); return; }
+        targetMovie = pool[Math.floor(Math.random() * pool.length)];
+
+        currentEmojis = Array.from(segmenter.segment(targetMovie.Emojis), s => s.segment);
+
+        // Reset UI
+        document.getElementById('gameOverModal').classList.add('hidden');
+        document.getElementById('summaryPanel').classList.add('hidden');
+        document.getElementById('genreSummary').innerHTML  = '';
+        document.getElementById('yearSummary').innerHTML   = '';
+        document.getElementById('studioSummary').innerHTML = '';
+        document.getElementById('scoreSummary').innerHTML  = '';
+        document.getElementById('guessHistory').innerHTML  = '';
+        document.getElementById('movieInput').value        = '';
+        document.getElementById('movieInput').disabled     = false;
+        document.getElementById('hintsContainer').classList.add('hidden');
+        document.getElementById('hintText').innerHTML      = '';
+        document.getElementById('btnVibe').disabled    = false;
+        document.getElementById('btnContext').disabled = false;
+        document.getElementById('streakCount').textContent = getStreak();
+
+        updateUI();
+    }
+
+    // ── UI refresh ──
+    function updateUI() {
+        document.getElementById('guessesLeft').textContent = guessesLeft;
+
+        // Progress bar: consumed = MAX - remaining
+        const consumed = MAX_GUESSES - guessesLeft;
+        document.getElementById('progressFill').style.width = `${(consumed / MAX_GUESSES) * 100}%`;
+
+        // Emoji reveal
+        const visible = currentEmojis.slice(0, Math.min(revealCount, currentEmojis.length));
+        document.getElementById('emojiDisplay').innerHTML = visible.map(e => `<span>${e}</span>`).join('');
+
+        // Show hint section when 5 or fewer guesses remain
+        if (guessesLeft <= 5) {
+            document.getElementById('hintsContainer').classList.remove('hidden');
+        }
+    }
+
+    // ── Summary panel ──
+    function updateGlobalSummaries(guessedMovie) {
+        document.getElementById('summaryPanel').classList.remove('hidden');
+
+        // Genre
+        const targetGenres = (targetMovie.Genres || '').split(',').map(g => g.trim().toLowerCase());
+        (guessedMovie.Genres || '').split(',').map(g => g.trim().toLowerCase()).forEach(g => {
+            if (targetGenres.includes(g)) foundGenres.add(g);
+        });
+        if (foundGenres.size > 0) {
+            document.getElementById('genreSummary').innerHTML = Array.from(foundGenres)
+                .map(g => `<span class="summary-pill bg-green-500/10 text-green-400 border-green-500/20">${g}</span>`)
+                .join('');
         }
 
-        function revealHint(type) {
-            if (type === 'abstract' && guessesLeft > 1) {
-                guessesLeft -= 1; revealCount += 1;
-                document.getElementById('hintText').innerHTML = `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Vibe Check</span>${targetMovie['Hint'] || 'No hint available.'}`;
-                document.getElementById('btnAbstract').disabled = true;
-            } else if (type === 'advanced' && guessesLeft > 2) {
-                guessesLeft -= 2; revealCount += 2;
-                document.getElementById('hintText').innerHTML = `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Context</span>${targetMovie['Description'] || 'No description available.'}`;
-                document.getElementById('btnAdvanced').disabled = true;
-            } else {
-                showNotification("Not enough guesses left for this hint!");
-                return;
+        // Year bounds
+        if (guessedMovie.Year && targetMovie.Year) {
+            if      (guessedMovie.Year < targetMovie.Year) yearBounds.min = Math.max(yearBounds.min || 0, guessedMovie.Year);
+            else if (guessedMovie.Year > targetMovie.Year) yearBounds.max = Math.min(yearBounds.max || 9999, guessedMovie.Year);
+            else { yearBounds.min = targetMovie.Year; yearBounds.max = targetMovie.Year; }
+        }
+        if (yearBounds.min === yearBounds.max && yearBounds.min) {
+            document.getElementById('yearSummary').innerHTML =
+                `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Year}</span>`;
+        } else if (yearBounds.min || yearBounds.max) {
+            document.getElementById('yearSummary').innerHTML =
+                `<span class="summary-pill text-yellow-500">${yearBounds.min || '?'} – ${yearBounds.max || '?'}</span>`;
+        }
+
+        // Studio
+        if (guessedMovie.Studio === targetMovie.Studio && targetMovie.Studio) {
+            document.getElementById('studioSummary').innerHTML =
+                `<span class="summary-pill bg-blue-500/20 text-blue-400">✓ ${targetMovie.Studio}</span>`;
+        }
+
+        // Critic Score
+        if (guessedMovie.CriticScore !== null && targetMovie.CriticScore !== null) {
+            const diff = Math.abs(guessedMovie.CriticScore - targetMovie.CriticScore);
+            if (diff === 0) {
+                document.getElementById('scoreSummary').innerHTML =
+                    `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.CriticScore}</span>`;
+            } else if (diff <= 5) {
+                const dir = guessedMovie.CriticScore < targetMovie.CriticScore ? '↑' : '↓';
+                document.getElementById('scoreSummary').innerHTML =
+                    `<span class="summary-pill text-yellow-500">~${dir}</span>`;
             }
+        }
+    }
+
+    // ── Hints ──
+    function revealHint(type) {
+        if (type === 'vibe') {
+            if (hintVibeUsed) return;
+            if (guessesLeft <= 1) { showNotification('Not enough guesses left!'); return; }
+            hintVibeUsed = true;
+            guessesLeft -= 1;
+            revealCount += 1;
+            document.getElementById('hintText').innerHTML =
+                `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Vibe Hint</span>` +
+                (targetMovie.Hint || 'No hint available.');
+            document.getElementById('btnVibe').disabled = true;
+        } else {
+            if (hintContextUsed) return;
+            if (guessesLeft <= 2) { showNotification('Not enough guesses left!'); return; }
+            hintContextUsed = true;
+            guessesLeft -= 2;
+            revealCount += 2;
+            const existing = document.getElementById('hintText').innerHTML;
+            const contextHtml =
+                `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Context Hint</span>` +
+                (targetMovie.Description || 'No description available.');
+            document.getElementById('hintText').innerHTML = existing
+                ? existing + `<hr class="border-white/10 my-4">` + contextHtml
+                : contextHtml;
+            document.getElementById('btnContext').disabled = true;
+        }
+        updateUI();
+        if (guessesLeft <= 0) endGame(false);
+    }
+
+    // ── Autocomplete ──
+    const input       = document.getElementById('movieInput');
+    const resultsList = document.getElementById('autocompleteResults');
+
+    input.addEventListener('input', e => {
+        const raw = e.target.value;
+        const val = normalizeString(raw);
+        resultsList.innerHTML = '';
+        if (!val) { resultsList.classList.add('hidden'); return; }
+
+        const filtered = movieDB
+            .filter(m => normalizeString(m.Title).includes(val))
+            .slice(0, 10);
+
+        if (filtered.length) {
+            filtered.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'px-8 py-4 hover:bg-white/5 cursor-pointer border-b border-white/5 flex justify-between items-center group';
+                div.innerHTML = `
+                    <div class="truncate flex-1 pr-4">
+                        <p class="text-lg font-bold group-hover:text-yellow-500 transition-colors truncate">${m.Title}</p>
+                        <p class="text-[9px] text-white/30 uppercase font-black tracking-widest truncate">${m.Studio || 'Independent'}</p>
+                    </div>
+                    <span class="text-xs text-white/40 font-black shrink-0">${m.Year || ''}</span>`;
+                div.onclick = () => submitGuess(m);
+                resultsList.appendChild(div);
+            });
+            resultsList.classList.remove('hidden');
+        } else {
+            resultsList.classList.add('hidden');
+        }
+    });
+
+    document.addEventListener('click', e => {
+        if (!input.contains(e.target)) resultsList.classList.add('hidden');
+    });
+
+    // ── Submit guess ──
+    function submitGuess(movie) {
+        const normTarget = normalizeString(targetMovie.Title);
+        const normGuess  = normalizeString(movie.Title);
+
+        if (guessedTitles.has(normGuess)) {
+            showNotification("You've already guessed this movie!");
+            return;
+        }
+
+        guessedTitles.add(normGuess);
+        resultsList.classList.add('hidden');
+        input.value = '';
+
+        const isCorrect = normGuess === normTarget;
+        addGuessRow(movie, isCorrect);
+        updateGlobalSummaries(movie);
+
+        if (isCorrect) {
+            revealCount = currentEmojis.length;
+            updateUI();
+            endGame(true);
+        } else {
+            guessesLeft--;
+            revealCount++;
             updateUI();
             if (guessesLeft <= 0) endGame(false);
         }
+    }
 
-        const input = document.getElementById('movieInput');
-        const resultsList = document.getElementById('autocompleteResults');
+    // ── Guess row ──
+    function addGuessRow(guess, isCorrect) {
+        const targetG  = (targetMovie.Genres || '').split(',').map(g => g.trim().toLowerCase());
+        const guessG   = (guess.Genres || '').split(',').map(g => g.trim().toLowerCase());
+        const shared   = guessG.filter(g => targetG.includes(g));
+        const yearDiff = Math.abs((guess.Year || 0) - (targetMovie.Year || 0));
+        const studioOk = guess.Studio === targetMovie.Studio && !!targetMovie.Studio;
 
-        input.addEventListener('input', (e) => {
-            const rawVal = e.target.value;
-            const normalizedVal = normalizeString(rawVal);
-            resultsList.innerHTML = '';
-
-            if (rawVal.length < 1) return resultsList.classList.add('hidden');
-            
-            const filtered = movieDB.filter(m => {
-                const normalizedTitle = normalizeString(m.Title);
-                return normalizedTitle.includes(normalizedVal);
-            }).slice(0, 10);
-
-            if (filtered.length > 0) {
-                filtered.forEach(m => {
-                    const div = document.createElement('div');
-                    div.className = 'px-8 py-4 hover:bg-white/5 cursor-pointer border-b border-white/5 flex justify-between items-center group';
-                    div.innerHTML = `
-                        <div class="truncate flex-1 pr-4">
-                            <p class="text-lg font-bold group-hover:text-yellow-500 transition-colors truncate">${m.Title}</p>
-                            <p class="text-[9px] text-white/30 uppercase font-black tracking-widest truncate">${m.Studio || 'Independent'}</p>
-                        </div>
-                        <span class="text-xs text-white/40 font-black shrink-0">${m.Year || ''}</span>
-                    `;
-                    div.onclick = () => submitGuess(m);
-                    resultsList.appendChild(div);
-                });
-                resultsList.classList.remove('hidden');
-            } else resultsList.classList.add('hidden');
-        });
-
-        function submitGuess(selectedMovie) {
-            const normalizedTarget = normalizeString(targetMovie.Title);
-            const normalizedGuess = normalizeString(selectedMovie.Title);
-
-            if (guessedTitles.has(normalizedGuess)) {
-                showNotification("You've already guessed this movie!");
-                return;
-            }
-            
-            guessedTitles.add(normalizedGuess);
-            resultsList.classList.add('hidden'); 
-            input.value = '';
-            
-            const isCorrect = normalizedGuess === normalizedTarget;
-            addGuessToHistory(selectedMovie, isCorrect);
-            updateGlobalSummaries(selectedMovie);
-            
-            if (isCorrect) { 
-                revealCount = currentEmojis.length; 
-                updateUI(); 
-                endGame(true); 
-            } else { 
-                guessesLeft--; 
-                revealCount++; 
-                updateUI(); 
-                if (guessesLeft <= 0) endGame(false); 
-            }
+        // Critic Score comparison
+        let scoreCls  = 'status-wrong';
+        let scoreText = guess.CriticScore !== null ? `${guess.CriticScore}` : 'N/A';
+        if (guess.CriticScore !== null && targetMovie.CriticScore !== null) {
+            const diff = Math.abs(guess.CriticScore - targetMovie.CriticScore);
+            if (diff === 0)     { scoreCls = 'status-correct'; }
+            else if (diff <= 5) { scoreCls = 'status-partial'; }
+            const dir = guess.CriticScore < targetMovie.CriticScore ? ' ↑' : (guess.CriticScore > targetMovie.CriticScore ? ' ↓' : '');
+            scoreText = `${guess.CriticScore}${dir}`;
         }
 
-        function addGuessToHistory(guess, isCorrect) {
-            const targetG = (targetMovie.Genres || "").split(',').map(g => g.trim().toLowerCase());
-            const guessG = (guess.Genres || "").split(',').map(g => g.trim().toLowerCase());
-            const shared = guessG.filter(g => targetG.includes(g));
-            const yearDiff = Math.abs((guess.Year || 0) - (targetMovie.Year || 0));
-            
-            const row = document.createElement('div');
-            row.className = "guess-row w-full";
-            row.innerHTML = `
-                <div class="feedback-grid">
-                    <div class="feedback-box ${isCorrect ? 'status-correct' : 'status-wrong'}">
-                        <span class="box-label">Title</span>
-                        <span class="box-value">${guess.Title}</span>
-                    </div>
-                    <div class="feedback-box ${shared.length > 0 ? (shared.length >= targetG.length ? 'status-correct' : 'status-partial') : 'status-wrong'}">
-                        <span class="box-label">Genre</span>
-                        <span class="box-value text-[11px]">${guess.Genres || 'N/A'}</span>
-                    </div>
-                    <div class="feedback-box ${yearDiff === 0 ? 'status-correct' : (yearDiff <= 3 ? 'status-partial' : 'status-wrong')}">
-                        <span class="box-label">Year</span>
-                        <span class="box-value">${guess.Year || '???'}${guess.Year < targetMovie.Year ? ' ↑' : (guess.Year > targetMovie.Year ? ' ↓' : '')}</span>
-                    </div>
-                    <div class="feedback-box ${guess.Studio?.trim() === targetMovie.Studio?.trim() ? 'status-correct' : 'status-wrong'}">
-                        <span class="box-label">Studio</span>
-                        <span class="box-value text-[11px]">${guess.Studio || 'N/A'}</span>
-                    </div>
+        const yearDir = guess.Year < targetMovie.Year ? ' ↑' : (guess.Year > targetMovie.Year ? ' ↓' : '');
+
+        const row = document.createElement('div');
+        row.className = 'guess-row w-full';
+        row.innerHTML = `
+            <div class="feedback-grid">
+                <div class="feedback-box ${isCorrect ? 'status-correct' : 'status-wrong'}">
+                    <span class="box-label">Title</span>
+                    <span class="box-value text-[11px]">${guess.Title}</span>
                 </div>
-            `;
-            document.getElementById('guessHistory').prepend(row);
+                <div class="feedback-box ${shared.length >= targetG.length && shared.length > 0 ? 'status-correct' : shared.length > 0 ? 'status-partial' : 'status-wrong'}">
+                    <span class="box-label">Genre</span>
+                    <span class="box-value text-[10px]">${guess.Genres || 'N/A'}</span>
+                </div>
+                <div class="feedback-box ${yearDiff === 0 ? 'status-correct' : yearDiff <= 3 ? 'status-partial' : 'status-wrong'}">
+                    <span class="box-label">Year</span>
+                    <span class="box-value">${guess.Year ? guess.Year + yearDir : '???'}</span>
+                </div>
+                <div class="feedback-box ${studioOk ? 'status-correct' : 'status-wrong'}">
+                    <span class="box-label">Studio</span>
+                    <span class="box-value text-[10px]">${guess.Studio || 'N/A'}</span>
+                </div>
+                <div class="feedback-box ${scoreCls}">
+                    <span class="box-label">Critic %</span>
+                    <span class="box-value">${scoreText}</span>
+                </div>
+            </div>`;
+        document.getElementById('guessHistory').prepend(row);
+    }
+
+    // ── End game ──
+    function endGame(won) {
+        input.disabled = true;
+
+        if (won) {
+            setStreak(getStreak() + 1);
+        } else {
+            setStreak(0);
         }
 
-        function endGame(won) {
-            input.disabled = true;
-            const modal = document.getElementById('gameOverModal');
-            document.getElementById('modalTitle').textContent = won ? "CRITIC'S CHOICE" : "BOX OFFICE BOMB";
-            document.getElementById('modalTitle').className = won ? "text-5xl font-black italic tracking-tighter text-green-500" : "text-5xl font-black italic tracking-tighter text-red-500";
-            document.getElementById('targetMovieTitle').textContent = targetMovie.Title;
-            document.getElementById('targetMovieMeta').textContent = `${targetMovie.Year} • ${targetMovie.Genres} • ${targetMovie.Studio}`;
-            if (won) setStreak(getStreak() + 1); else setStreak(0);
-            setTimeout(() => modal.classList.remove('hidden'), 600);
-        }
+        document.getElementById('modalTitle').textContent = won ? "CRITIC'S CHOICE" : 'BOX OFFICE BOMB';
+        document.getElementById('modalTitle').className   = won
+            ? 'text-5xl font-black italic tracking-tighter text-green-500'
+            : 'text-5xl font-black italic tracking-tighter text-red-500';
+        document.getElementById('targetMovieTitle').textContent = targetMovie.Title;
 
-        document.addEventListener('click', (e) => { if (!input.contains(e.target)) resultsList.classList.add('hidden'); });
-    </script>
+        const scoreStr = targetMovie.CriticScore !== null ? `${targetMovie.CriticScore}% critic` : '';
+        document.getElementById('targetMovieMeta').textContent =
+            [targetMovie.Year, targetMovie.Genres, targetMovie.Studio, scoreStr].filter(Boolean).join(' • ');
+
+        setTimeout(() => document.getElementById('gameOverModal').classList.remove('hidden'), 600);
+    }
+</script>
 </body>
 </html>

@@ -3,143 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cinemadle - Movie Guessing Game</title>
+    <title>Cinemadle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: radial-gradient(circle at 50% 0%, #1e2024 0%, #0a0b0c 100%); color: #fff; min-height: 100vh; overflow-x: hidden; }
-        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        .emoji-box { font-size: 3rem; transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1); min-height: 7rem; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.75rem; text-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 50% 0%, #1e2024 0%, #0a0b0c 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+        }
+
+        /* ── Emoji ── */
+        .emoji-box {
+            font-size: 3.25rem;
+            min-height: 7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            text-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
         .emoji-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; cursor: default; }
-        .emoji-tip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); background: #1a1c20; border: 1px solid rgba(255,255,255,0.12); color: #e2e8f0; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 8px; white-space: nowrap; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 50; }
-        .emoji-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(255,255,255,0.12); }
+        .emoji-tip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #18191d;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #e2e8f0;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 5px 11px;
+            border-radius: 8px;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            z-index: 50;
+        }
+        .emoji-tip::after {
+            content: '';
+            position: absolute;
+            top: 100%; left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(255,255,255,0.15);
+        }
         .emoji-wrap:hover .emoji-tip { display: block; }
-        .feedback-grid { display: grid; grid-template-columns: 2fr 1.4fr 0.8fr 1.4fr 0.7fr 0.7fr 0.9fr; gap: 0.5rem; width: 100%; }
-        .col-headers  { display: grid; grid-template-columns: 2fr 1.4fr 0.8fr 1.4fr 0.7fr 0.7fr 0.9fr; gap: 0.5rem; padding: 0 2px; }
-        .feedback-box { padding: 0.75rem 0.25rem; border-radius: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-weight: 700; border: 1px solid rgba(255,255,255,0.05); min-height: 5.5rem; width: 100%; overflow: hidden; }
-        .box-label { font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.4; margin-bottom: 5px; white-space: nowrap; }
-        .box-value { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 3px; font-size: 0.72rem; }
-        .box-value-wrap { white-space: normal; line-height: 1.25; font-size: 0.65rem; }
-        .status-correct { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); color: #4ade80; }
-        .status-partial { background: rgba(234,179,8,0.15); border-color: rgba(234,179,8,0.3); color: #facc15; }
-        .status-wrong   { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); color: #94a3b8; }
-        .guess-row { animation: slideUp 0.5s cubic-bezier(0.23,1,0.32,1); }
-        @keyframes slideUp { from { opacity:0; transform:translateY(30px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
-        @keyframes fadeInOut { 0%{opacity:0;transform:translate(-50%,-20px);}15%,85%{opacity:1;transform:translate(-50%,0);}100%{opacity:0;transform:translate(-50%,-20px);} }
-        .progress-track { height:4px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden; }
-        .progress-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,#eab308,#f97316); transition:width 0.6s cubic-bezier(0.65,0,0.35,1); }
-        .summary-pill { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); padding:3px 9px; border-radius:99px; font-size:0.68rem; font-weight:700; text-transform:uppercase; }
-        .notification { position:fixed; top:30px; left:50%; transform:translateX(-50%); background:#ef4444; color:#fff; padding:12px 24px; border-radius:1rem; font-weight:800; z-index:1000; box-shadow:0 20px 40px rgba(0,0,0,0.4); animation:fadeInOut 2.5s forwards; }
-        .custom-scrollbar::-webkit-scrollbar{width:4px;} .custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:10px;}
-        .badge-easy{color:#4ade80;} .badge-hard{color:#fb923c;} .badge-impossible{color:#f87171;}
+
+        /* ── Guess grid ── */
+        .feedback-grid {
+            display: grid;
+            grid-template-columns: 2.2fr 1.5fr 0.9fr 1.5fr 0.8fr 0.7fr 1fr;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        .col-headers {
+            display: grid;
+            grid-template-columns: 2.2fr 1.5fr 0.9fr 1.5fr 0.8fr 0.7fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .feedback-box {
+            padding: 0.9rem 0.4rem;
+            border-radius: 0.875rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.06);
+            min-height: 6rem;
+            overflow: hidden;
+        }
+        .box-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.45;
+            margin-bottom: 6px;
+            white-space: nowrap;
+        }
+        .box-value {
+            display: block;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 4px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .box-value-wrap {
+            white-space: normal;
+            font-size: 0.72rem;
+            line-height: 1.3;
+        }
+        .box-dir {
+            font-size: 0.75rem;
+            font-weight: 900;
+            margin-top: 3px;
+            line-height: 1;
+        }
+
+        .status-correct { background: rgba(34,197,94,0.16);  border-color: rgba(34,197,94,0.35);  color: #4ade80; }
+        .status-partial { background: rgba(234,179,8,0.16);  border-color: rgba(234,179,8,0.35);  color: #facc15; }
+        .status-wrong   { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.07); color: #94a3b8; }
+
+        /* ── Animations ── */
+        .guess-row { animation: slideUp 0.45s cubic-bezier(0.23,1,0.32,1); }
+        @keyframes slideUp { from { opacity:0; transform:translateY(24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+        @keyframes fadeUpDown {
+            0%   { opacity:0; transform:translate(-50%,-16px); }
+            12%, 80% { opacity:1; transform:translate(-50%,0); }
+            100% { opacity:0; transform:translate(-50%,-16px); }
+        }
+
+        /* ── Progress bar ── */
+        .progress-track { height: 5px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+        .progress-fill  { height: 100%; border-radius: 99px; background: linear-gradient(90deg,#eab308,#f97316); transition: width 0.55s cubic-bezier(0.65,0,0.35,1); }
+
+        /* ── Summary pills ── */
+        .summary-pill {
+            display: inline-block;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 4px 11px;
+            border-radius: 99px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            line-height: 1.4;
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            top: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 11px 24px;
+            border-radius: 1rem;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 0.03em;
+            z-index: 1000;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+            animation: fadeUpDown 2.8s forwards;
+            white-space: nowrap;
+        }
+        .toast-error   { background: #dc2626; color: #fff; }
+        .toast-success { background: #16a34a; color: #fff; }
+        .toast-info    { background: #1d4ed8; color: #fff; }
+
+        /* ── Autocomplete ── */
+        .autocomplete-item { transition: background 0.15s; }
+        .autocomplete-item:hover,
+        .autocomplete-item.kbd-active { background: rgba(255,255,255,0.06); }
+        .autocomplete-item.already-guessed { opacity: 0.35; cursor: default; pointer-events: none; }
+
+        /* ── Input pulse when active ── */
+        @keyframes inputPulse {
+            0%, 100% { border-color: rgba(255,255,255,0.1); }
+            50%       { border-color: rgba(234,179,8,0.35); }
+        }
+        #movieInput:not(:disabled) { animation: inputPulse 3s ease-in-out infinite; }
+        #movieInput:focus { animation: none; border-color: rgba(234,179,8,0.6) !important; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .badge-easy       { color: #4ade80; }
+        .badge-hard       { color: #fb923c; }
+        .badge-impossible { color: #f87171; }
+
+        /* ── Guess number badge ── */
+        .guess-num {
+            font-size: 0.6rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: right;
+            padding-right: 4px;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 <div class="max-w-5xl mx-auto space-y-8">
 
-    <header class="text-center space-y-4">
-        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-yellow-300 via-yellow-500 to-orange-600">Cinemadle</h1>
-        <p class="text-white/30 text-sm uppercase tracking-[0.4em] font-bold">The Ultimate Movie Guessing Challenge</p>
+    <!-- Header -->
+    <header class="text-center space-y-3 pt-2">
+        <h1 class="text-6xl md:text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-yellow-300 via-yellow-500 to-orange-600">Cinemadle</h1>
+        <p class="text-white/30 text-xs uppercase tracking-[0.45em] font-bold">The Ultimate Movie Guessing Challenge</p>
     </header>
 
     <!-- Loading -->
-    <div id="setupView" class="glass-card p-12 text-center space-y-8 border-dashed border-2 border-white/10">
-        <div class="space-y-4">
-            <div class="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto animate-pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            </div>
-            <h2 class="text-3xl font-bold">Initializing Engine</h2>
-            <p id="loadingStatus" class="text-gray-400">Fetching cinematic data from local directory...</p>
+    <div id="setupView" class="glass-card p-14 text-center space-y-6">
+        <div class="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
+            <svg class="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </div>
+        <h2 class="text-2xl font-black">Initializing Engine</h2>
+        <p id="loadingStatus" class="text-gray-400 text-sm">Fetching cinematic data…</p>
     </div>
 
-    <!-- Difficulty -->
+    <!-- Difficulty selector -->
     <div id="difficultyView" class="hidden glass-card p-12 text-center space-y-10">
-        <h2 class="text-4xl font-bold tracking-tight">Select Difficulty</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <button onclick="setDifficulty('Easy Mode')" class="group p-8 rounded-3xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-all hover:-translate-y-1">
+        <h2 class="text-4xl font-black tracking-tight">Select Difficulty</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <button onclick="setDifficulty('Easy Mode')" class="group p-8 rounded-2xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-all hover:-translate-y-1 active:scale-95">
                 <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🎬</div>
-                <div class="font-black text-green-500 uppercase tracking-widest text-xs mb-1">Easy</div>
-                <div class="text-xs text-gray-500">Global Hits</div>
+                <div class="font-black text-green-400 uppercase tracking-widest text-sm mb-1">Easy</div>
+                <div class="text-sm text-gray-500">Global Hits</div>
             </button>
-            <button onclick="setDifficulty('Hard Mode')" class="group p-8 rounded-3xl border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 transition-all hover:-translate-y-1">
+            <button onclick="setDifficulty('Hard Mode')" class="group p-8 rounded-2xl border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 transition-all hover:-translate-y-1 active:scale-95">
                 <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🎭</div>
-                <div class="font-black text-orange-500 uppercase tracking-widest text-xs mb-1">Hard</div>
-                <div class="text-xs text-gray-500">Cinephile Picks</div>
+                <div class="font-black text-orange-400 uppercase tracking-widest text-sm mb-1">Hard</div>
+                <div class="text-sm text-gray-500">Cinephile Picks</div>
             </button>
-            <button onclick="setDifficulty('Impossible Mode')" class="group p-8 rounded-3xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all hover:-translate-y-1">
+            <button onclick="setDifficulty('Impossible Mode')" class="group p-8 rounded-2xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all hover:-translate-y-1 active:scale-95">
                 <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition-all">🕵️‍♂️</div>
-                <div class="font-black text-red-500 uppercase tracking-widest text-xs mb-1">Impossible</div>
-                <div class="text-xs text-gray-500">Obscure Gems</div>
+                <div class="font-black text-red-400 uppercase tracking-widest text-sm mb-1">Impossible</div>
+                <div class="text-sm text-gray-500">Obscure Gems</div>
             </button>
         </div>
     </div>
 
     <!-- Game -->
-    <div id="gameView" class="hidden space-y-6">
+    <div id="gameView" class="hidden space-y-5">
 
         <!-- Top bar -->
-        <div class="flex justify-between items-end px-2">
-            <div class="flex gap-3 items-end">
-                <div class="glass-card px-6 py-4 flex flex-col">
-                    <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Guesses Left</span>
-                    <span id="guessesLeft" class="text-3xl font-black text-yellow-500 leading-none">10</span>
+        <div class="flex justify-between items-stretch gap-3 px-1">
+            <div class="flex gap-3 flex-1">
+                <div class="glass-card px-6 py-4 flex flex-col justify-center min-w-[90px]">
+                    <span class="text-[11px] font-black text-white/30 uppercase tracking-widest mb-1">Guesses Left</span>
+                    <span id="guessesLeft" class="text-4xl font-black text-yellow-400 leading-none">10</span>
                 </div>
-                <div class="glass-card px-5 py-4 flex flex-col justify-center bg-white/5 border-none min-w-[100px]">
-                    <span class="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-0.5">Difficulty</span>
-                    <span id="currentDiffName" class="text-[11px] font-black tracking-widest">EASY</span>
+                <div class="glass-card px-5 py-4 flex flex-col justify-center min-w-[90px]">
+                    <span class="text-[11px] font-black text-white/20 uppercase tracking-widest mb-1">Difficulty</span>
+                    <span id="currentDiffName" class="text-sm font-black tracking-widest">EASY</span>
                 </div>
             </div>
-            <div class="flex gap-3 items-end">
-                <div class="glass-card px-5 py-4 flex flex-col items-end">
-                    <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Win Streak</span>
-                    <span id="streakCount" class="text-3xl font-black text-green-500 leading-none">0</span>
+            <div class="flex gap-3">
+                <div class="glass-card px-5 py-4 flex flex-col items-end justify-center min-w-[90px]">
+                    <span class="text-[11px] font-black text-white/30 uppercase tracking-widest mb-1">Win Streak</span>
+                    <span id="streakCount" class="text-4xl font-black text-green-400 leading-none">0</span>
                 </div>
-                <button onclick="showDifficultySelect()" title="Change difficulty" class="glass-card px-4 py-4 text-[13px] font-black text-white/30 hover:text-white/60 transition-colors">⇄</button>
+                <button onclick="showDifficultySelect()" title="Change difficulty"
+                    class="glass-card px-4 flex items-center justify-center text-xl text-white/30 hover:text-white/70 transition-colors">⇄</button>
             </div>
         </div>
 
         <!-- Progress bar -->
-        <div class="px-2"><div class="progress-track"><div id="progressFill" class="progress-fill" style="width:0%"></div></div></div>
-
-        <!-- Summary panel — 6 slots -->
-        <div id="summaryPanel" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div class="glass-card p-3 flex flex-col items-center gap-2">
-                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Genres</span>
-                <div id="genreSummary" class="flex flex-wrap justify-center gap-1"></div>
-            </div>
-            <div class="glass-card p-3 flex flex-col items-center gap-2">
-                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Year</span>
-                <div id="yearSummary"></div>
-            </div>
-            <div class="glass-card p-3 flex flex-col items-center gap-2">
-                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Studio</span>
-                <div id="studioSummary" class="text-center text-xs"></div>
-            </div>
-            <div class="glass-card p-3 flex flex-col items-center gap-2">
-                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Critic %</span>
-                <div id="scoreSummary"></div>
-            </div>
-            <div class="glass-card p-3 flex flex-col items-center gap-2">
-                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">MPA Rating</span>
-                <div id="ratingSummary"></div>
-            </div>
-            <div class="glass-card p-3 flex flex-col items-center gap-2">
-                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Country</span>
-                <div id="countrySummary" class="text-center text-xs"></div>
+        <div class="px-1">
+            <div class="progress-track"><div id="progressFill" class="progress-fill" style="width:0%"></div></div>
+            <div class="flex justify-between mt-1.5">
+                <span class="text-[11px] text-white/20 font-bold uppercase tracking-widest">Progress</span>
+                <span id="progressLabel" class="text-[11px] text-white/20 font-bold uppercase tracking-widest">0 / 10</span>
             </div>
         </div>
 
-        <!-- Emoji board -->
-        <div class="glass-card p-10 md:p-16 text-center relative overflow-hidden">
+        <!-- Summary panel -->
+        <div id="summaryPanel" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="glass-card p-4 flex flex-col items-center gap-2 min-h-[4.5rem]">
+                <span class="text-[11px] font-black text-white/25 uppercase tracking-widest">Genres</span>
+                <div id="genreSummary" class="flex flex-wrap justify-center gap-1"></div>
+            </div>
+            <div class="glass-card p-4 flex flex-col items-center gap-2 min-h-[4.5rem]">
+                <span class="text-[11px] font-black text-white/25 uppercase tracking-widest">Year</span>
+                <div id="yearSummary"></div>
+            </div>
+            <div class="glass-card p-4 flex flex-col items-center gap-2 min-h-[4.5rem]">
+                <span class="text-[11px] font-black text-white/25 uppercase tracking-widest">Studio</span>
+                <div id="studioSummary" class="text-center"></div>
+            </div>
+            <div class="glass-card p-4 flex flex-col items-center gap-2 min-h-[4.5rem]">
+                <span class="text-[11px] font-black text-white/25 uppercase tracking-widest">Critic %</span>
+                <div id="scoreSummary"></div>
+            </div>
+            <div class="glass-card p-4 flex flex-col items-center gap-2 min-h-[4.5rem]">
+                <span class="text-[11px] font-black text-white/25 uppercase tracking-widest">Rating</span>
+                <div id="ratingSummary"></div>
+            </div>
+            <div class="glass-card p-4 flex flex-col items-center gap-2 min-h-[4.5rem]">
+                <span class="text-[11px] font-black text-white/25 uppercase tracking-widest">Country</span>
+                <div id="countrySummary" class="text-center"></div>
+            </div>
+        </div>
+
+        <!-- Emoji board + hints -->
+        <div class="glass-card p-10 md:p-14 text-center relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-b from-yellow-500/5 to-transparent pointer-events-none"></div>
+            <p class="text-[11px] font-black text-white/20 uppercase tracking-[0.3em] mb-4">Vibe Check</p>
             <div id="emojiDisplay" class="emoji-box"></div>
-            <div id="hintsContainer" class="hidden mt-10 pt-8 border-t border-white/5 space-y-6">
-                <div id="hintText" class="text-sm md:text-base italic text-gray-400 bg-white/5 p-5 rounded-2xl border border-white/5 text-left leading-relaxed"></div>
-                <div class="flex flex-wrap justify-center gap-4">
-                    <button onclick="revealHint('vibe')" id="btnVibe" class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">VIBE HINT &minus;1</button>
-                    <button onclick="revealHint('context')" id="btnContext" class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">CONTEXT HINT &minus;2</button>
+
+            <div id="hintsContainer" class="hidden mt-10 pt-8 border-t border-white/5 space-y-5">
+                <div id="hintText" class="text-base text-gray-300 bg-white/5 p-6 rounded-2xl border border-white/5 text-left leading-relaxed italic"></div>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="revealHint('vibe')" id="btnVibe"
+                        class="bg-white/5 px-7 py-3 rounded-xl text-sm font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">
+                        Vibe Hint &minus;1
+                    </button>
+                    <button onclick="revealHint('context')" id="btnContext"
+                        class="bg-white/5 px-7 py-3 rounded-xl text-sm font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">
+                        Context Hint &minus;2
+                    </button>
                 </div>
             </div>
         </div>
@@ -147,13 +338,13 @@
         <!-- Search -->
         <div class="relative">
             <input type="text" id="movieInput"
-                class="w-full bg-white/5 border border-white/10 rounded-3xl px-8 py-6 outline-none focus:border-yellow-500/50 transition-all text-xl md:text-2xl font-medium placeholder-white/20"
-                placeholder="Search for a movie title..." autocomplete="off">
-            <div id="autocompleteResults" class="absolute z-50 w-full mt-3 glass-card max-h-96 overflow-y-auto hidden custom-scrollbar"></div>
+                class="w-full bg-white/5 border rounded-2xl px-7 py-5 outline-none transition-all text-xl font-bold placeholder-white/20"
+                placeholder="Search for a movie…" autocomplete="off" spellcheck="false">
+            <div id="autocompleteResults" class="absolute z-50 w-full mt-2 glass-card max-h-80 overflow-y-auto hidden custom-scrollbar" style="border-radius:1rem"></div>
         </div>
 
         <!-- Column headers -->
-        <div class="col-headers text-[9px] font-black uppercase tracking-widest text-white/20 px-1">
+        <div class="col-headers text-[11px] font-black uppercase tracking-widest text-white/25 px-1">
             <div class="text-center">Title</div>
             <div class="text-center">Genre</div>
             <div class="text-center">Year</div>
@@ -164,23 +355,24 @@
         </div>
 
         <!-- Guess history -->
-        <div id="guessHistory" class="space-y-3"></div>
+        <div id="guessHistory" class="space-y-3 pb-12"></div>
     </div>
 </div>
 
 <!-- Game-over modal -->
 <div id="gameOverModal" class="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[100] flex items-center justify-center hidden p-6">
-    <div class="glass-card max-w-lg w-full p-10 text-center space-y-8 border-white/10">
+    <div class="glass-card max-w-lg w-full p-10 text-center space-y-8" style="border-color:rgba(255,255,255,0.12)">
         <h2 id="modalTitle" class="text-5xl font-black italic tracking-tighter">RESULT</h2>
         <div class="space-y-3">
-            <p class="text-white/30 text-xs font-black uppercase tracking-[0.3em]">The Movie Was</p>
-            <p id="targetMovieTitle" class="text-4xl font-black text-white"></p>
-            <div id="targetMovieMeta" class="bg-white/5 p-4 rounded-2xl text-[11px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed"></div>
-            <div id="modalEmojis" class="emoji-box text-3xl justify-center pt-2"></div>
+            <p class="text-white/30 text-xs font-black uppercase tracking-[0.35em]">The Movie Was</p>
+            <p id="targetMovieTitle" class="text-3xl font-black text-white leading-tight"></p>
+            <div id="targetMovieMeta" class="bg-white/5 p-4 rounded-xl text-sm text-gray-400 font-bold leading-relaxed"></div>
+            <div id="modalEmojis" class="emoji-box text-3xl pt-2 justify-center"></div>
+            <p id="modalGuessCount" class="text-white/40 text-sm font-black uppercase tracking-widest"></p>
         </div>
         <div class="flex flex-col gap-3">
-            <button onclick="startNewGame()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-5 rounded-2xl transition-all text-lg">NEXT LEVEL</button>
-            <button onclick="showDifficultySelect()" class="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-2xl text-[10px] uppercase tracking-widest opacity-40 hover:opacity-80 transition-all">CHANGE DIFFICULTY</button>
+            <button onclick="nextLevel()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-5 rounded-2xl transition-all text-lg active:scale-95">Next Movie</button>
+            <button onclick="showDifficultySelect()" class="w-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white font-bold py-4 rounded-2xl text-sm uppercase tracking-widest transition-all">Change Difficulty</button>
         </div>
     </div>
 </div>
@@ -191,38 +383,43 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
     // ── State ──
     let movieDB = [], difficultyMap = {}, currentDifficulty = 'Easy Mode';
     let targetMovie = null, guessesLeft = 10, revealCount = 1, currentEmojis = [];
-    let guessedTitles = new Set(), foundGenres = new Set(), yearBounds = { min: null, max: null };
+    let guessedTitles = new Set(), foundGenres = new Set();
+    let yearBounds = { min: null, max: null };   // exclusive: means "movie year is AFTER min and BEFORE max"
     let hintVibeUsed = false, hintContextUsed = false;
+    let hintsUnlockToastShown = false;
+    let kbdIdx = -1;
+
     const MAX_GUESSES = 10;
+    const HINTS_UNLOCK_AT = 5; // guesses remaining when hints appear
     const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
 
-    const cleanTitle = str => str ? str.trim() : '';
-    const normalizeString = str => str ? str.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+    const cleanTitle      = s => s ? s.trim() : '';
+    const normalizeString = s => s ? s.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 
-    // ── Emoji tooltip helpers ──
-    function emojiName(grapheme) {
-        if (EMOJI_NAMES[grapheme]) return EMOJI_NAMES[grapheme];
-        const first = [...grapheme][0];
+    // ── Emoji helpers ──
+    function emojiName(g) {
+        if (EMOJI_NAMES[g]) return EMOJI_NAMES[g];
+        const first = [...g][0];
         return EMOJI_NAMES[first] || null;
     }
     function makeEmojiHtml(emojis) {
         return emojis.map(e => {
-            const name = emojiName(e);
-            return name
-                ? `<span class="emoji-wrap">${e}<span class="emoji-tip">${name}</span></span>`
-                : `<span class="emoji-wrap">${e}</span>`;
+            const n = emojiName(e);
+            return n ? `<span class="emoji-wrap">${e}<span class="emoji-tip">${n}</span></span>`
+                     : `<span class="emoji-wrap">${e}</span>`;
         }).join('');
     }
 
-    function showNotification(msg) {
+    // ── Toast ──
+    function showToast(msg, type = 'error') {
         const div = document.createElement('div');
-        div.className = 'notification';
+        div.className = `toast toast-${type}`;
         div.textContent = msg;
         document.body.appendChild(div);
-        setTimeout(() => div.remove(), 2600);
+        setTimeout(() => div.remove(), 2900);
     }
 
-    // ── Load CSVs side-loaded ──
+    // ── Load CSVs ──
     window.onload = async function () {
         const statusEl = document.getElementById('loadingStatus');
         try {
@@ -250,8 +447,8 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
                                 const title = cleanTitle(m.Title);
                                 const diff  = difficultyMap[title] || {};
                                 let year = null;
-                                const dateMatch = (m['Release Date'] || '').match(/\d{4}/);
-                                if (dateMatch) year = parseInt(dateMatch[0]);
+                                const dm = (m['Release Date'] || '').match(/\d{4}/);
+                                if (dm) year = parseInt(dm[0]);
                                 return {
                                     Title:         title,
                                     Genres:        (m.Genres          || '').trim(),
@@ -269,15 +466,21 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
                                 };
                             }).filter(m => m.Title && m.Difficulty);
 
-                            if (movieDB.length > 0) setTimeout(showDifficultySelect, 600);
-                            else statusEl.textContent = 'Error: database empty after parsing.';
+                            if (movieDB.length > 0) {
+                                setTimeout(() => {
+                                    if (!tryRestoreSession()) showDifficultySelect();
+                                }, 400);
+                            } else {
+                                statusEl.textContent = 'Error: database empty after parsing.';
+                            }
                         }
                     });
                 }
             });
         } catch (err) {
             console.error(err);
-            statusEl.innerHTML = `<span class="text-red-500 font-bold">Failed: ${err.message}</span><br><span class="text-xs opacity-50">Ensure movies.csv and difficulty.csv are in the same folder.</span>`;
+            statusEl.innerHTML = `<span class="text-red-400 font-bold">Failed: ${err.message}</span><br>
+                <span class="text-xs opacity-50">Ensure movies.csv and difficulty.csv are in the same folder.</span>`;
         }
     };
 
@@ -291,78 +494,170 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         currentDifficulty = diff;
         document.getElementById('difficultyView').classList.add('hidden');
         document.getElementById('gameView').classList.remove('hidden');
+        activateDifficultyUI(diff);
+        startNewGame();
+    }
+    function activateDifficultyUI(diff) {
         const labels  = {'Easy Mode':'EASY','Hard Mode':'HARD','Impossible Mode':'IMPOSSIBLE'};
         const classes = {'Easy Mode':'badge-easy','Hard Mode':'badge-hard','Impossible Mode':'badge-impossible'};
         const el = document.getElementById('currentDiffName');
         el.textContent = labels[diff] || diff;
-        el.className = `text-[11px] font-black tracking-widest ${classes[diff]||''}`;
-        startNewGame();
+        el.className = `text-sm font-black tracking-widest ${classes[diff]||''}`;
     }
 
     // ── Streak ──
     function getStreak() { return parseInt(localStorage.getItem(`cinemadle_streak_${currentDifficulty}`)) || 0; }
     function setStreak(v) { localStorage.setItem(`cinemadle_streak_${currentDifficulty}`, v); document.getElementById('streakCount').textContent = v; }
 
+    // ── Session ──
+    const SESSION_KEY = 'cinemadle_session_v1';
+    function saveSession() {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({
+            difficulty:     currentDifficulty,
+            targetTitle:    targetMovie.Title,
+            guessesLeft, revealCount,
+            guessedTitles:  [...guessedTitles],
+            foundGenres:    [...foundGenres],
+            yearBounds, hintVibeUsed, hintContextUsed,
+            gameOver: document.getElementById('movieInput').disabled,
+        }));
+    }
+    function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+    function tryRestoreSession() {
+        let session;
+        try { session = JSON.parse(localStorage.getItem(SESSION_KEY) || ''); } catch { return false; }
+        if (!session || !session.targetTitle) return false;
+        const movie = movieDB.find(m => m.Title === session.targetTitle && m.Difficulty === session.difficulty);
+        if (!movie) return false;
+
+        currentDifficulty = session.difficulty;
+        targetMovie       = movie;
+        currentEmojis     = Array.from(segmenter.segment(movie.Emojis), s => s.segment);
+        guessesLeft       = session.guessesLeft;
+        revealCount       = session.revealCount;
+        guessedTitles     = new Set(session.guessedTitles || []);
+        foundGenres       = new Set(session.foundGenres || []);
+        yearBounds        = session.yearBounds || { min: null, max: null };
+        hintVibeUsed      = session.hintVibeUsed;
+        hintContextUsed   = session.hintContextUsed;
+        hintsUnlockToastShown = true; // don't re-toast on restore
+
+        activateDifficultyUI(currentDifficulty);
+        document.getElementById('difficultyView').classList.add('hidden');
+        document.getElementById('gameView').classList.remove('hidden');
+
+        // Re-render guesses (oldest first so prepend produces correct order)
+        const ordered = [...guessedTitles].map(t => movieDB.find(m => normalizeString(m.Title) === t)).filter(Boolean);
+        ordered.forEach(g => addGuessRow(g, normalizeString(g.Title) === normalizeString(targetMovie.Title), false));
+
+        if (guessedTitles.size > 0) {
+            document.getElementById('summaryPanel').classList.remove('hidden');
+            renderSummaryFromState();
+        }
+        restoreHintDisplay();
+
+        if (session.gameOver) {
+            const won = guessedTitles.size > 0 &&
+                normalizeString([...guessedTitles].at(-1)) === normalizeString(targetMovie.Title);
+            endGame(won, true);
+        } else {
+            document.getElementById('streakCount').textContent = getStreak();
+            updateUI();
+        }
+        return true;
+    }
+
     // ── New game ──
     function startNewGame() {
         guessesLeft = MAX_GUESSES; revealCount = 1;
         foundGenres = new Set(); yearBounds = { min: null, max: null };
         guessedTitles = new Set(); hintVibeUsed = false; hintContextUsed = false;
+        hintsUnlockToastShown = false; kbdIdx = -1;
 
         const pool = movieDB.filter(m => m.Difficulty === currentDifficulty);
-        if (!pool.length) { showNotification('No movies for this difficulty!'); return; }
+        if (!pool.length) { showToast('No movies for this difficulty!'); return; }
         targetMovie = pool[Math.floor(Math.random() * pool.length)];
         currentEmojis = Array.from(segmenter.segment(targetMovie.Emojis), s => s.segment);
 
         document.getElementById('gameOverModal').classList.add('hidden');
         document.getElementById('summaryPanel').classList.add('hidden');
-        ['genreSummary','yearSummary','studioSummary','scoreSummary','ratingSummary','countrySummary'].forEach(id => {
-            document.getElementById(id).innerHTML = '';
-        });
+        ['genreSummary','yearSummary','studioSummary','scoreSummary','ratingSummary','countrySummary']
+            .forEach(id => document.getElementById(id).innerHTML = '');
         document.getElementById('guessHistory').innerHTML  = '';
         document.getElementById('movieInput').value        = '';
         document.getElementById('movieInput').disabled     = false;
         document.getElementById('hintsContainer').classList.add('hidden');
         document.getElementById('hintText').innerHTML      = '';
-        document.getElementById('btnVibe').disabled    = false;
-        document.getElementById('btnContext').disabled = false;
+        document.getElementById('btnVibe').disabled        = false;
+        document.getElementById('btnContext').disabled     = false;
         document.getElementById('streakCount').textContent = getStreak();
+        saveSession();
         updateUI();
     }
 
-    // ── UI refresh ──
+    // ── UI ──
     function updateUI() {
-        document.getElementById('guessesLeft').textContent = guessesLeft;
-        document.getElementById('progressFill').style.width = `${((MAX_GUESSES - guessesLeft) / MAX_GUESSES) * 100}%`;
+        const used = MAX_GUESSES - guessesLeft;
+        document.getElementById('guessesLeft').textContent  = guessesLeft;
+        document.getElementById('progressFill').style.width = `${(used / MAX_GUESSES) * 100}%`;
+        document.getElementById('progressLabel').textContent = `${used} / ${MAX_GUESSES}`;
+
         const visible = currentEmojis.slice(0, Math.min(revealCount, currentEmojis.length));
         document.getElementById('emojiDisplay').innerHTML = makeEmojiHtml(visible);
-        if (guessesLeft <= 5) document.getElementById('hintsContainer').classList.remove('hidden');
+
+        if (guessesLeft <= HINTS_UNLOCK_AT) {
+            document.getElementById('hintsContainer').classList.remove('hidden');
+            if (!hintsUnlockToastShown) {
+                hintsUnlockToastShown = true;
+                showToast('🔓 Hints unlocked!', 'info');
+            }
+        }
     }
 
-    // ── Summary panel ──
+    // ── Year summary helpers (EXCLUSIVE bounds) ──
+    // yearBounds.min = the highest guessed year that was TOO LOW  (movie is AFTER this)
+    // yearBounds.max = the lowest  guessed year that was TOO HIGH (movie is BEFORE this)
+    function updateYearBounds(guessedYear) {
+        if (!guessedYear || !targetMovie.Year) return;
+        if (guessedYear < targetMovie.Year)
+            yearBounds.min = yearBounds.min === null ? guessedYear : Math.max(yearBounds.min, guessedYear);
+        else if (guessedYear > targetMovie.Year)
+            yearBounds.max = yearBounds.max === null ? guessedYear : Math.min(yearBounds.max, guessedYear);
+        else {
+            // Exact match — will be marked correct; bounds no longer matter
+            yearBounds.min = targetMovie.Year;
+            yearBounds.max = targetMovie.Year;
+        }
+    }
+    function renderYearSummary() {
+        const el = document.getElementById('yearSummary');
+        const { min, max } = yearBounds;
+        if (min === targetMovie.Year || max === targetMovie.Year) {
+            el.innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Year}</span>`;
+        } else if (min !== null && max !== null) {
+            el.innerHTML = `<span class="summary-pill text-yellow-400">After ${min} · Before ${max}</span>`;
+        } else if (min !== null) {
+            el.innerHTML = `<span class="summary-pill text-yellow-400">After ${min}</span>`;
+        } else if (max !== null) {
+            el.innerHTML = `<span class="summary-pill text-yellow-400">Before ${max}</span>`;
+        }
+    }
+
+    // ── Summary panel (live update) ──
     function updateGlobalSummaries(guess) {
         document.getElementById('summaryPanel').classList.remove('hidden');
 
         // Genre
-        const tGenres = (targetMovie.Genres || '').split(',').map(g => g.trim().toLowerCase());
-        (guess.Genres || '').split(',').map(g => g.trim().toLowerCase()).forEach(g => {
-            if (tGenres.includes(g)) foundGenres.add(g);
-        });
+        const tG = (targetMovie.Genres||'').split(',').map(g=>g.trim().toLowerCase());
+        (guess.Genres||'').split(',').map(g=>g.trim().toLowerCase()).forEach(g => { if (tG.includes(g)) foundGenres.add(g); });
         if (foundGenres.size > 0)
             document.getElementById('genreSummary').innerHTML = [...foundGenres]
-                .map(g => `<span class="summary-pill bg-green-500/10 text-green-400 border-green-500/20">${g}</span>`).join('');
+                .map(g=>`<span class="summary-pill bg-green-500/10 text-green-400 border-green-500/20">${g}</span>`).join('');
 
-        // Year bounds
-        if (guess.Year && targetMovie.Year) {
-            if      (guess.Year < targetMovie.Year) yearBounds.min = Math.max(yearBounds.min || 0, guess.Year);
-            else if (guess.Year > targetMovie.Year) yearBounds.max = Math.min(yearBounds.max || 9999, guess.Year);
-            else { yearBounds.min = targetMovie.Year; yearBounds.max = targetMovie.Year; }
-        }
-        const yrEl = document.getElementById('yearSummary');
-        if (yearBounds.min === yearBounds.max && yearBounds.min)
-            yrEl.innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Year}</span>`;
-        else if (yearBounds.min || yearBounds.max)
-            yrEl.innerHTML = `<span class="summary-pill text-yellow-500">${yearBounds.min||'?'} – ${yearBounds.max||'?'}</span>`;
+        // Year
+        updateYearBounds(guess.Year);
+        renderYearSummary();
 
         // Studio
         if (guess.Studio && guess.Studio === targetMovie.Studio)
@@ -374,208 +669,307 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
             if (d === 0)
                 document.getElementById('scoreSummary').innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.CriticScore}</span>`;
             else if (d <= 5)
-                document.getElementById('scoreSummary').innerHTML = `<span class="summary-pill text-yellow-500">~${guess.CriticScore < targetMovie.CriticScore ? '↑' : '↓'}</span>`;
+                document.getElementById('scoreSummary').innerHTML = `<span class="summary-pill text-yellow-400">~${guess.CriticScore < targetMovie.CriticScore ? '↑' : '↓'}</span>`;
         }
 
-        // MPA Rating — exact match only
+        // Rating
         if (guess.Rating && guess.Rating === targetMovie.Rating)
             document.getElementById('ratingSummary').innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Rating}</span>`;
 
-        // Country — slash-separated, partial ok
+        // Country
         if (guess.Country && targetMovie.Country) {
-            const tC = targetMovie.Country.split('/').map(c => c.trim().toLowerCase());
-            const gC = guess.Country.split('/').map(c => c.trim().toLowerCase());
-            const shared = gC.filter(c => tC.includes(c));
+            const tC = targetMovie.Country.split('/').map(c=>c.trim().toLowerCase());
+            const gC = guess.Country.split('/').map(c=>c.trim().toLowerCase());
+            const shared = gC.filter(c=>tC.includes(c));
             const cEl = document.getElementById('countrySummary');
             if (shared.length >= tC.length)
                 cEl.innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Country}</span>`;
             else if (shared.length > 0)
-                cEl.innerHTML = `<span class="summary-pill text-yellow-500">${shared.join(', ')} …</span>`;
+                cEl.innerHTML = `<span class="summary-pill text-yellow-400">${shared.join(', ')} …</span>`;
         }
+    }
+
+    // ── Rebuild summary from saved state (on restore) ──
+    function renderSummaryFromState() {
+        if (foundGenres.size > 0)
+            document.getElementById('genreSummary').innerHTML = [...foundGenres]
+                .map(g=>`<span class="summary-pill bg-green-500/10 text-green-400 border-green-500/20">${g}</span>`).join('');
+        renderYearSummary();
+        const studioFound = [...guessedTitles].some(t => {
+            const m = movieDB.find(x=>normalizeString(x.Title)===t); return m && m.Studio===targetMovie.Studio;
+        });
+        if (studioFound)
+            document.getElementById('studioSummary').innerHTML = `<span class="summary-pill bg-blue-500/20 text-blue-400">✓ ${targetMovie.Studio}</span>`;
+        // Critic score
+        for (const t of guessedTitles) {
+            const m = movieDB.find(x=>normalizeString(x.Title)===t);
+            if (!m || m.CriticScore===null || targetMovie.CriticScore===null) continue;
+            const d = Math.abs(m.CriticScore-targetMovie.CriticScore);
+            if (d===0) { document.getElementById('scoreSummary').innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.CriticScore}</span>`; break; }
+            if (d<=5)  { document.getElementById('scoreSummary').innerHTML = `<span class="summary-pill text-yellow-400">~${m.CriticScore<targetMovie.CriticScore?'↑':'↓'}</span>`; }
+        }
+        // Rating
+        const ratingFound = [...guessedTitles].some(t => { const m=movieDB.find(x=>normalizeString(x.Title)===t); return m&&m.Rating===targetMovie.Rating; });
+        if (ratingFound)
+            document.getElementById('ratingSummary').innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Rating}</span>`;
+        // Country
+        const tC = (targetMovie.Country||'').split('/').map(c=>c.trim().toLowerCase());
+        let best = [];
+        for (const t of guessedTitles) {
+            const m = movieDB.find(x=>normalizeString(x.Title)===t);
+            if (!m) continue;
+            const gC = (m.Country||'').split('/').map(c=>c.trim().toLowerCase());
+            const shared = gC.filter(c=>tC.includes(c));
+            if (shared.length > best.length) best = shared;
+        }
+        if (best.length >= tC.length && best.length > 0)
+            document.getElementById('countrySummary').innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Country}</span>`;
+        else if (best.length > 0)
+            document.getElementById('countrySummary').innerHTML = `<span class="summary-pill text-yellow-400">${best.join(', ')} …</span>`;
     }
 
     // ── Hints ──
     function revealHint(type) {
         if (type === 'vibe') {
             if (hintVibeUsed) return;
-            if (guessesLeft <= 1) { showNotification('Not enough guesses!'); return; }
-            hintVibeUsed = true; guessesLeft -= 1; revealCount += 1;
+            if (guessesLeft <= 1) { showToast('Not enough guesses!'); return; }
+            hintVibeUsed = true; guessesLeft--; revealCount++;
             document.getElementById('hintText').innerHTML =
-                `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Vibe Hint</span>` +
+                `<span class="not-italic text-yellow-400 font-black text-xs block mb-2 uppercase tracking-widest">Vibe Hint</span>` +
                 (targetMovie.Hint || 'No hint available.');
             document.getElementById('btnVibe').disabled = true;
         } else {
             if (hintContextUsed) return;
-            if (guessesLeft <= 2) { showNotification('Not enough guesses!'); return; }
+            if (guessesLeft <= 2) { showToast('Not enough guesses!'); return; }
             hintContextUsed = true; guessesLeft -= 2; revealCount += 2;
-            const existing = document.getElementById('hintText').innerHTML;
-            const ctx = `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Context Hint</span>` +
+            const ex = document.getElementById('hintText').innerHTML;
+            const ctx = `<span class="not-italic text-yellow-400 font-black text-xs block mb-2 uppercase tracking-widest">Context Hint</span>` +
                         (targetMovie.Description || 'No description available.');
-            document.getElementById('hintText').innerHTML = existing ? existing + '<hr class="border-white/10 my-4">' + ctx : ctx;
+            document.getElementById('hintText').innerHTML = ex ? ex + '<hr class="border-white/10 my-4">' + ctx : ctx;
             document.getElementById('btnContext').disabled = true;
         }
         updateUI();
+        saveSession();
         if (guessesLeft <= 0) endGame(false);
     }
 
-    // ── Autocomplete ──
-    const input = document.getElementById('movieInput');
-    const resultsList = document.getElementById('autocompleteResults');
-
-    // Score a movie title against the raw (un-normalized) query.
-    // Works on the original title so short words like "You", "Old", "It" surface correctly.
-    function scoreMatch(title, rawQuery) {
-        const q   = rawQuery.trim().toLowerCase();
-        const t   = title.toLowerCase();
-        const qN  = normalizeString(q);   // stripped query
-        const tN  = normalizeString(t);   // stripped title
-
-        if (!qN) return -1;
-
-        let score = 0;
-
-        // ── Exact whole-title match (case-insensitive, original chars) ──
-        if (t === q)  score += 10000;
-        if (tN === qN) score += 9000;
-
-        // ── Title starts with the query ──
-        if (t.startsWith(q))  score += 5000;
-        if (tN.startsWith(qN)) score += 4000;
-
-        // ── A word in the title starts with the query ──
-        const words = t.split(/\s+/);
-        if (words.some(w => w === q))            score += 3000;  // exact word match
-        if (words.some(w => w.startsWith(q)))    score += 1500;  // word prefix
-        // Same checks on per-word stripped forms
-        const wordsStripped = t.split(/\s+/).map(w => normalizeString(w));
-        if (wordsStripped.some(w => w === qN))         score += 2500;
-        if (wordsStripped.some(w => w.startsWith(qN))) score += 1200;
-
-        // ── Substring anywhere (fallback, penalise by position) ──
-        const idx = tN.indexOf(qN);
-        if (idx === 0)       score += 800;
-        else if (idx > 0)    score += Math.max(0, 400 - idx * 10);
-
-        // ── Penalise longer titles so "Old" beats "The Old Guard" ──
-        score -= title.length * 2;
-
-        return score;
+    function restoreHintDisplay() {
+        if (!hintVibeUsed && !hintContextUsed) return;
+        document.getElementById('hintsContainer').classList.remove('hidden');
+        let html = '';
+        if (hintVibeUsed) {
+            html += `<span class="not-italic text-yellow-400 font-black text-xs block mb-2 uppercase tracking-widest">Vibe Hint</span>` +
+                    (targetMovie.Hint || 'No hint available.');
+            document.getElementById('btnVibe').disabled = true;
+        }
+        if (hintContextUsed) {
+            const ctx = `<span class="not-italic text-yellow-400 font-black text-xs block mb-2 uppercase tracking-widest">Context Hint</span>` +
+                        (targetMovie.Description || 'No description available.');
+            html = html ? html + '<hr class="border-white/10 my-4">' + ctx : ctx;
+            document.getElementById('btnContext').disabled = true;
+        }
+        document.getElementById('hintText').innerHTML = html;
     }
 
-    input.addEventListener('input', e => {
-        const raw = e.target.value;
-        resultsList.innerHTML = '';
-        if (!raw.trim()) { resultsList.classList.add('hidden'); return; }
+    // ── Autocomplete ──
+    const input       = document.getElementById('movieInput');
+    const resultsList = document.getElementById('autocompleteResults');
 
-        const scored = movieDB
+    function scoreMatch(title, rawQuery) {
+        const q  = rawQuery.trim().toLowerCase();
+        const t  = title.toLowerCase();
+        const qN = normalizeString(q);
+        const tN = normalizeString(t);
+        if (!qN) return -1;
+        let s = 0;
+        if (t === q)   s += 10000;
+        if (tN === qN) s += 9000;
+        if (t.startsWith(q))   s += 5000;
+        if (tN.startsWith(qN)) s += 4000;
+        const words = t.split(/\s+/);
+        if (words.some(w => w === q))         s += 3000;
+        if (words.some(w => w.startsWith(q))) s += 1500;
+        const wordsN = t.split(/\s+/).map(w => normalizeString(w));
+        if (wordsN.some(w => w === qN))         s += 2500;
+        if (wordsN.some(w => w.startsWith(qN))) s += 1200;
+        const idx = tN.indexOf(qN);
+        if (idx === 0)    s += 800;
+        else if (idx > 0) s += Math.max(0, 400 - idx * 10);
+        s -= title.length * 2;
+        return s;
+    }
+
+    function renderAutocomplete(raw) {
+        resultsList.innerHTML = '';
+        kbdIdx = -1;
+        if (!raw.trim()) { resultsList.classList.add('hidden'); return; }
+        const results = movieDB
             .map(m => ({ m, s: scoreMatch(m.Title, raw) }))
             .filter(({ s }) => s > 0)
             .sort((a, b) => b.s - a.s)
             .slice(0, 10)
             .map(({ m }) => m);
-        if (scored.length) {
-            scored.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'px-8 py-4 hover:bg-white/5 cursor-pointer border-b border-white/5 flex justify-between items-center group';
-                const ratingStr = m.Rating ? `<span class="ml-2 text-[9px] border border-white/20 rounded px-1 py-px font-black text-white/30">${m.Rating}</span>` : '';
-                div.innerHTML = `
-                    <div class="truncate flex-1 pr-4">
-                        <p class="text-lg font-bold group-hover:text-yellow-500 transition-colors truncate">${m.Title}${ratingStr}</p>
-                        <p class="text-[9px] text-white/30 uppercase font-black tracking-widest truncate">${m.Studio||'Independent'} · ${m.Country||''} · ${m.Language||''}</p>
-                    </div>
-                    <span class="text-xs text-white/40 font-black shrink-0">${m.Year||''}</span>`;
-                div.onclick = () => submitGuess(m);
-                resultsList.appendChild(div);
-            });
-            resultsList.classList.remove('hidden');
-        } else resultsList.classList.add('hidden');
+
+        if (!results.length) { resultsList.classList.add('hidden'); return; }
+
+        results.forEach((m, i) => {
+            const alreadyGuessed = guessedTitles.has(normalizeString(m.Title));
+            const div = document.createElement('div');
+            div.className = `autocomplete-item px-6 py-4 border-b border-white/5 flex justify-between items-center gap-4 ${alreadyGuessed ? 'already-guessed' : 'cursor-pointer'}`;
+            div.dataset.idx = i;
+            const ratingStr = m.Rating ? `<span class="ml-2 text-[10px] border border-white/20 rounded px-1 py-px font-black text-white/30">${m.Rating}</span>` : '';
+            div.innerHTML = `
+                <div class="min-w-0 flex-1">
+                    <p class="text-base font-bold text-white group-hover:text-yellow-400 truncate">${m.Title}${alreadyGuessed ? ' <span class="text-green-500">✓</span>' : ''}${ratingStr}</p>
+                    <p class="text-[11px] text-white/30 font-bold uppercase tracking-wider truncate mt-0.5">${m.Studio||'Independent'} · ${m.Country||''}</p>
+                </div>
+                <span class="text-sm text-white/40 font-black shrink-0">${m.Year||''}</span>`;
+            if (!alreadyGuessed) div.onclick = () => submitGuess(m);
+            resultsList.appendChild(div);
+        });
+        resultsList.classList.remove('hidden');
+    }
+
+    input.addEventListener('input', e => renderAutocomplete(e.target.value));
+
+    input.addEventListener('keydown', e => {
+        const items = [...resultsList.querySelectorAll('.autocomplete-item:not(.already-guessed)')];
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            kbdIdx = Math.min(kbdIdx + 1, items.length - 1);
+            items.forEach((el, i) => el.classList.toggle('kbd-active', i === kbdIdx));
+            items[kbdIdx]?.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            kbdIdx = Math.max(kbdIdx - 1, 0);
+            items.forEach((el, i) => el.classList.toggle('kbd-active', i === kbdIdx));
+            items[kbdIdx]?.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const target = kbdIdx >= 0 ? items[kbdIdx] : items[0];
+            target?.click();
+        } else if (e.key === 'Escape') {
+            resultsList.classList.add('hidden'); kbdIdx = -1;
+        }
     });
-    document.addEventListener('click', e => { if (!input.contains(e.target)) resultsList.classList.add('hidden'); });
+
+    document.addEventListener('click', e => {
+        if (!input.contains(e.target) && !resultsList.contains(e.target))
+            resultsList.classList.add('hidden');
+    });
+
+    // ── Submit ──
     function submitGuess(movie) {
         const normGuess = normalizeString(movie.Title);
-        if (guessedTitles.has(normGuess)) { showNotification("Already guessed!"); return; }
+        if (guessedTitles.has(normGuess)) { showToast('Already guessed!'); return; }
         guessedTitles.add(normGuess);
         resultsList.classList.add('hidden');
         input.value = '';
+        kbdIdx = -1;
         const isCorrect = normGuess === normalizeString(targetMovie.Title);
-        addGuessRow(movie, isCorrect);
+        addGuessRow(movie, isCorrect, true);
         updateGlobalSummaries(movie);
-        if (isCorrect) { revealCount = currentEmojis.length; updateUI(); endGame(true); }
-        else { guessesLeft--; revealCount++; updateUI(); if (guessesLeft <= 0) endGame(false); }
+        if (isCorrect) {
+            revealCount = currentEmojis.length;
+            updateUI();
+            endGame(true);
+        } else {
+            guessesLeft--;
+            revealCount++;
+            updateUI();
+            if (guessesLeft <= 0) endGame(false);
+            else saveSession();
+        }
     }
 
-    // ── Guess row (7 columns) ──
-    function addGuessRow(guess, isCorrect) {
+    // ── Guess row ──
+    function addGuessRow(guess, isCorrect, animate) {
         const tG = (targetMovie.Genres||'').split(',').map(g=>g.trim().toLowerCase());
         const gG = (guess.Genres||'').split(',').map(g=>g.trim().toLowerCase());
-        const sharedG = gG.filter(g => tG.includes(g));
+        const sharedG = gG.filter(g=>tG.includes(g));
         const yearDiff = Math.abs((guess.Year||0)-(targetMovie.Year||0));
         const studioOk = guess.Studio && guess.Studio === targetMovie.Studio;
         const ratingOk = guess.Rating && guess.Rating === targetMovie.Rating;
-
         const tC = (targetMovie.Country||'').split('/').map(c=>c.trim().toLowerCase());
         const gC = (guess.Country||'').split('/').map(c=>c.trim().toLowerCase());
-        const sharedC = gC.filter(c => tC.includes(c));
-        const countryCls = sharedC.length >= tC.length && sharedC.length > 0 ? 'status-correct'
-                         : sharedC.length > 0 ? 'status-partial' : 'status-wrong';
+        const sharedC = gC.filter(c=>tC.includes(c));
+        const countryCls = sharedC.length>=tC.length&&sharedC.length>0 ? 'status-correct' : sharedC.length>0 ? 'status-partial' : 'status-wrong';
 
-        let scoreCls = 'status-wrong', scoreText = guess.CriticScore !== null ? String(guess.CriticScore) : 'N/A';
-        if (guess.CriticScore !== null && targetMovie.CriticScore !== null) {
-            const d = Math.abs(guess.CriticScore - targetMovie.CriticScore);
-            scoreCls = d === 0 ? 'status-correct' : d <= 5 ? 'status-partial' : 'status-wrong';
-            const dir = guess.CriticScore < targetMovie.CriticScore ? ' ↑' : guess.CriticScore > targetMovie.CriticScore ? ' ↓' : '';
-            scoreText = `${guess.CriticScore}${dir}`;
+        let scoreCls='status-wrong', scoreVal=guess.CriticScore!==null?String(guess.CriticScore):'N/A', scoreDir='';
+        if (guess.CriticScore!==null && targetMovie.CriticScore!==null) {
+            const d=Math.abs(guess.CriticScore-targetMovie.CriticScore);
+            scoreCls = d===0?'status-correct':d<=5?'status-partial':'status-wrong';
+            scoreDir = guess.CriticScore<targetMovie.CriticScore?'↑':guess.CriticScore>targetMovie.CriticScore?'↓':'';
         }
-        const yearDir = guess.Year && targetMovie.Year ? (guess.Year < targetMovie.Year ? ' ↑' : guess.Year > targetMovie.Year ? ' ↓' : '') : '';
+        const yearDir = guess.Year&&targetMovie.Year ? (guess.Year<targetMovie.Year?'↑':guess.Year>targetMovie.Year?'↓':'') : '';
         const countryDisplay = (guess.Country||'N/A').split('/')[0].trim();
+        const guessNum = guessedTitles.size;
 
         const row = document.createElement('div');
-        row.className = 'guess-row w-full';
-        row.innerHTML = `<div class="feedback-grid">
-            <div class="feedback-box ${isCorrect?'status-correct':'status-wrong'}">
-                <span class="box-label">Title</span><span class="box-value">${guess.Title}</span>
-            </div>
-            <div class="feedback-box ${sharedG.length>0&&sharedG.length>=tG.length?'status-correct':sharedG.length>0?'status-partial':'status-wrong'}">
-                <span class="box-label">Genre</span><span class="box-value box-value-wrap">${guess.Genres||'N/A'}</span>
-            </div>
-            <div class="feedback-box ${yearDiff===0?'status-correct':yearDiff<=3?'status-partial':'status-wrong'}">
-                <span class="box-label">Year</span><span class="box-value">${guess.Year?guess.Year+yearDir:'???'}</span>
-            </div>
-            <div class="feedback-box ${studioOk?'status-correct':'status-wrong'}">
-                <span class="box-label">Studio</span><span class="box-value">${guess.Studio||'N/A'}</span>
-            </div>
-            <div class="feedback-box ${scoreCls}">
-                <span class="box-label">Critic %</span><span class="box-value">${scoreText}</span>
-            </div>
-            <div class="feedback-box ${ratingOk?'status-correct':'status-wrong'}">
-                <span class="box-label">Rating</span><span class="box-value">${guess.Rating||'N/A'}</span>
-            </div>
-            <div class="feedback-box ${countryCls}">
-                <span class="box-label">Country</span><span class="box-value">${countryDisplay}</span>
-            </div>
-        </div>`;
+        row.className = animate ? 'guess-row w-full' : 'w-full';
+        row.innerHTML = `
+            <div class="guess-num">#${guessNum}</div>
+            <div class="feedback-grid">
+                <div class="feedback-box ${isCorrect?'status-correct':'status-wrong'}">
+                    <span class="box-label">Title</span>
+                    <span class="box-value text-sm">${guess.Title}</span>
+                </div>
+                <div class="feedback-box ${sharedG.length>0&&sharedG.length>=tG.length?'status-correct':sharedG.length>0?'status-partial':'status-wrong'}">
+                    <span class="box-label">Genre</span>
+                    <span class="box-value box-value-wrap">${guess.Genres||'N/A'}</span>
+                </div>
+                <div class="feedback-box ${yearDiff===0?'status-correct':yearDiff<=3?'status-partial':'status-wrong'}">
+                    <span class="box-label">Year</span>
+                    <span class="box-value">${guess.Year||'???'}</span>
+                    ${yearDir ? `<span class="box-dir">${yearDir}</span>` : ''}
+                </div>
+                <div class="feedback-box ${studioOk?'status-correct':'status-wrong'}">
+                    <span class="box-label">Studio</span>
+                    <span class="box-value box-value-wrap">${guess.Studio||'N/A'}</span>
+                </div>
+                <div class="feedback-box ${scoreCls}">
+                    <span class="box-label">Critic %</span>
+                    <span class="box-value">${scoreVal}</span>
+                    ${scoreDir ? `<span class="box-dir">${scoreDir}</span>` : ''}
+                </div>
+                <div class="feedback-box ${ratingOk?'status-correct':'status-wrong'}">
+                    <span class="box-label">Rating</span>
+                    <span class="box-value">${guess.Rating||'N/A'}</span>
+                </div>
+                <div class="feedback-box ${countryCls}">
+                    <span class="box-label">Country</span>
+                    <span class="box-value">${countryDisplay}</span>
+                </div>
+            </div>`;
         document.getElementById('guessHistory').prepend(row);
     }
 
     // ── End game ──
-    function endGame(won) {
+    function endGame(won, skipSave = false) {
         input.disabled = true;
-        setStreak(won ? getStreak() + 1 : 0);
+        if (!skipSave) {
+            setStreak(won ? getStreak() + 1 : 0);
+            saveSession();
+        }
         document.getElementById('modalTitle').textContent = won ? "CRITIC'S CHOICE" : 'BOX OFFICE BOMB';
-        document.getElementById('modalTitle').className = won
-            ? 'text-5xl font-black italic tracking-tighter text-green-500'
-            : 'text-5xl font-black italic tracking-tighter text-red-500';
+        document.getElementById('modalTitle').className   = won
+            ? 'text-5xl font-black italic tracking-tighter text-green-400'
+            : 'text-5xl font-black italic tracking-tighter text-red-400';
         document.getElementById('targetMovieTitle').textContent = targetMovie.Title;
-        const meta = [
-            targetMovie.Year, targetMovie.Genres, targetMovie.Studio,
+        const meta = [targetMovie.Year, targetMovie.Genres, targetMovie.Studio,
             targetMovie.Rating, targetMovie.Country, targetMovie.Language,
-            targetMovie.CriticScore !== null ? `${targetMovie.CriticScore}% critic` : null
-        ].filter(Boolean).join(' • ');
+            targetMovie.CriticScore!==null ? `${targetMovie.CriticScore}% critic` : null
+        ].filter(Boolean).join(' · ');
         document.getElementById('targetMovieMeta').textContent = meta;
-        // Full emoji reveal with tooltips in modal
         document.getElementById('modalEmojis').innerHTML = makeEmojiHtml(currentEmojis);
-        setTimeout(() => document.getElementById('gameOverModal').classList.remove('hidden'), 600);
+        const guessCount = MAX_GUESSES - guessesLeft;
+        document.getElementById('modalGuessCount').textContent =
+            won ? `Solved in ${guessCount} guess${guessCount===1?'':'es'}` : `Guesses used: ${guessCount} / ${MAX_GUESSES}`;
+        setTimeout(() => document.getElementById('gameOverModal').classList.remove('hidden'), skipSave ? 0 : 700);
     }
+
+    function nextLevel() { clearSession(); startNewGame(); }
 </script>
 </body>
 </html>

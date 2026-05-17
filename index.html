@@ -422,13 +422,59 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
     const input = document.getElementById('movieInput');
     const resultsList = document.getElementById('autocompleteResults');
 
+    // Score a movie title against the raw (un-normalized) query.
+    // Works on the original title so short words like "You", "Old", "It" surface correctly.
+    function scoreMatch(title, rawQuery) {
+        const q   = rawQuery.trim().toLowerCase();
+        const t   = title.toLowerCase();
+        const qN  = normalizeString(q);   // stripped query
+        const tN  = normalizeString(t);   // stripped title
+
+        if (!qN) return -1;
+
+        let score = 0;
+
+        // ── Exact whole-title match (case-insensitive, original chars) ──
+        if (t === q)  score += 10000;
+        if (tN === qN) score += 9000;
+
+        // ── Title starts with the query ──
+        if (t.startsWith(q))  score += 5000;
+        if (tN.startsWith(qN)) score += 4000;
+
+        // ── A word in the title starts with the query ──
+        const words = t.split(/\s+/);
+        if (words.some(w => w === q))            score += 3000;  // exact word match
+        if (words.some(w => w.startsWith(q)))    score += 1500;  // word prefix
+        // Same checks on per-word stripped forms
+        const wordsStripped = t.split(/\s+/).map(w => normalizeString(w));
+        if (wordsStripped.some(w => w === qN))         score += 2500;
+        if (wordsStripped.some(w => w.startsWith(qN))) score += 1200;
+
+        // ── Substring anywhere (fallback, penalise by position) ──
+        const idx = tN.indexOf(qN);
+        if (idx === 0)       score += 800;
+        else if (idx > 0)    score += Math.max(0, 400 - idx * 10);
+
+        // ── Penalise longer titles so "Old" beats "The Old Guard" ──
+        score -= title.length * 2;
+
+        return score;
+    }
+
     input.addEventListener('input', e => {
-        const val = normalizeString(e.target.value);
+        const raw = e.target.value;
         resultsList.innerHTML = '';
-        if (!val) { resultsList.classList.add('hidden'); return; }
-        const filtered = movieDB.filter(m => normalizeString(m.Title).includes(val)).slice(0, 10);
-        if (filtered.length) {
-            filtered.forEach(m => {
+        if (!raw.trim()) { resultsList.classList.add('hidden'); return; }
+
+        const scored = movieDB
+            .map(m => ({ m, s: scoreMatch(m.Title, raw) }))
+            .filter(({ s }) => s > 0)
+            .sort((a, b) => b.s - a.s)
+            .slice(0, 10)
+            .map(({ m }) => m);
+        if (scored.length) {
+            scored.forEach(m => {
                 const div = document.createElement('div');
                 div.className = 'px-8 py-4 hover:bg-white/5 cursor-pointer border-b border-white/5 flex justify-between items-center group';
                 const ratingStr = m.Rating ? `<span class="ml-2 text-[9px] border border-white/20 rounded px-1 py-px font-black text-white/30">${m.Rating}</span>` : '';
@@ -445,8 +491,6 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         } else resultsList.classList.add('hidden');
     });
     document.addEventListener('click', e => { if (!input.contains(e.target)) resultsList.classList.add('hidden'); });
-
-    // ── Submit ──
     function submitGuess(movie) {
         const normGuess = normalizeString(movie.Title);
         if (guessedTitles.has(normGuess)) { showNotification("Already guessed!"); return; }

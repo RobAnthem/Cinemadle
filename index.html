@@ -8,172 +8,53 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at 50% 0%, #1e2024 0%, #0a0b0c 100%);
-            color: #ffffff;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* ── Emoji board ── */
-        .emoji-box {
-            font-size: 3.5rem;
-            letter-spacing: 0.5rem;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            min-height: 7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            text-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-
-        /* ── Guess-row grid ── */
-        .feedback-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.75rem;
-            width: 100%;
-        }
-
-        .feedback-box {
-            padding: 1rem 0.25rem;
-            border-radius: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 0.85rem;
-            font-weight: 700;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s ease;
-            height: 6rem;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .box-label {
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            opacity: 0.4;
-            margin-bottom: 6px;
-            white-space: nowrap;
-        }
-
-        .box-value {
-            display: block;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            padding: 0 4px;
-        }
-
-        .status-correct { background: rgba(34, 197, 94, 0.15);  border-color: rgba(34, 197, 94, 0.3);  color: #4ade80; }
-        .status-partial { background: rgba(234, 179, 8, 0.15);  border-color: rgba(234, 179, 8, 0.3);  color: #facc15; }
-        .status-wrong   { background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08); color: #94a3b8; }
-
-        /* ── Animations ── */
-        .guess-row { animation: slideUp 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px) scale(0.95); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        @keyframes fadeInOut {
-            0%          { opacity: 0; transform: translate(-50%, -20px); }
-            15%, 85%    { opacity: 1; transform: translate(-50%, 0); }
-            100%        { opacity: 0; transform: translate(-50%, -20px); }
-        }
-
-        /* ── Progress bar ── */
-        .progress-track {
-            height: 4px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 99px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            border-radius: 99px;
-            background: linear-gradient(90deg, #eab308, #f97316);
-            transition: width 0.6s cubic-bezier(0.65,0,0.35,1);
-        }
-
-        /* ── Summary pills ── */
-        .summary-pill {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 4px 12px;
-            border-radius: 99px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        /* ── Notification toast ── */
-        .notification {
-            position: fixed;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ef4444;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 1rem;
-            font-weight: 800;
-            z-index: 1000;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            animation: fadeInOut 2.5s forwards;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-
-        /* ── Difficulty badge colours ── */
-        .badge-easy       { color: #4ade80; }
-        .badge-hard       { color: #fb923c; }
-        .badge-impossible { color: #f87171; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: radial-gradient(circle at 50% 0%, #1e2024 0%, #0a0b0c 100%); color: #fff; min-height: 100vh; overflow-x: hidden; }
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .emoji-box { font-size: 3rem; transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1); min-height: 7rem; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.75rem; text-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .emoji-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; cursor: default; }
+        .emoji-tip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); background: #1a1c20; border: 1px solid rgba(255,255,255,0.12); color: #e2e8f0; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 8px; white-space: nowrap; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 50; }
+        .emoji-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(255,255,255,0.12); }
+        .emoji-wrap:hover .emoji-tip { display: block; }
+        .feedback-grid { display: grid; grid-template-columns: 2fr 1.4fr 0.8fr 1.4fr 0.7fr 0.7fr 0.9fr; gap: 0.5rem; width: 100%; }
+        .col-headers  { display: grid; grid-template-columns: 2fr 1.4fr 0.8fr 1.4fr 0.7fr 0.7fr 0.9fr; gap: 0.5rem; padding: 0 2px; }
+        .feedback-box { padding: 0.75rem 0.25rem; border-radius: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-weight: 700; border: 1px solid rgba(255,255,255,0.05); min-height: 5.5rem; width: 100%; overflow: hidden; }
+        .box-label { font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.4; margin-bottom: 5px; white-space: nowrap; }
+        .box-value { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 3px; font-size: 0.72rem; }
+        .box-value-wrap { white-space: normal; line-height: 1.25; font-size: 0.65rem; }
+        .status-correct { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); color: #4ade80; }
+        .status-partial { background: rgba(234,179,8,0.15); border-color: rgba(234,179,8,0.3); color: #facc15; }
+        .status-wrong   { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); color: #94a3b8; }
+        .guess-row { animation: slideUp 0.5s cubic-bezier(0.23,1,0.32,1); }
+        @keyframes slideUp { from { opacity:0; transform:translateY(30px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+        @keyframes fadeInOut { 0%{opacity:0;transform:translate(-50%,-20px);}15%,85%{opacity:1;transform:translate(-50%,0);}100%{opacity:0;transform:translate(-50%,-20px);} }
+        .progress-track { height:4px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden; }
+        .progress-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,#eab308,#f97316); transition:width 0.6s cubic-bezier(0.65,0,0.35,1); }
+        .summary-pill { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); padding:3px 9px; border-radius:99px; font-size:0.68rem; font-weight:700; text-transform:uppercase; }
+        .notification { position:fixed; top:30px; left:50%; transform:translateX(-50%); background:#ef4444; color:#fff; padding:12px 24px; border-radius:1rem; font-weight:800; z-index:1000; box-shadow:0 20px 40px rgba(0,0,0,0.4); animation:fadeInOut 2.5s forwards; }
+        .custom-scrollbar::-webkit-scrollbar{width:4px;} .custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:10px;}
+        .badge-easy{color:#4ade80;} .badge-hard{color:#fb923c;} .badge-impossible{color:#f87171;}
     </style>
 </head>
 <body class="p-4 md:p-8">
-<div class="max-w-4xl mx-auto space-y-8">
+<div class="max-w-5xl mx-auto space-y-8">
 
-    <!-- ── Header ── -->
     <header class="text-center space-y-4">
-        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-yellow-300 via-yellow-500 to-orange-600">
-            Cinemadle
-        </h1>
-        <p id="subHeader" class="text-white/30 text-sm uppercase tracking-[0.4em] font-bold">The Ultimate Movie Guessing Challenge</p>
+        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-yellow-300 via-yellow-500 to-orange-600">Cinemadle</h1>
+        <p class="text-white/30 text-sm uppercase tracking-[0.4em] font-bold">The Ultimate Movie Guessing Challenge</p>
     </header>
 
-    <!-- ── Loading view ── -->
+    <!-- Loading -->
     <div id="setupView" class="glass-card p-12 text-center space-y-8 border-dashed border-2 border-white/10">
         <div class="space-y-4">
             <div class="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto animate-pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </div>
             <h2 class="text-3xl font-bold">Initializing Engine</h2>
             <p id="loadingStatus" class="text-gray-400">Fetching cinematic data from local directory...</p>
         </div>
     </div>
 
-    <!-- ── Difficulty selection ── -->
+    <!-- Difficulty -->
     <div id="difficultyView" class="hidden glass-card p-12 text-center space-y-10">
         <h2 class="text-4xl font-bold tracking-tight">Select Difficulty</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -195,7 +76,7 @@
         </div>
     </div>
 
-    <!-- ── Main game view ── -->
+    <!-- Game -->
     <div id="gameView" class="hidden space-y-6">
 
         <!-- Top bar -->
@@ -205,9 +86,9 @@
                     <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Guesses Left</span>
                     <span id="guessesLeft" class="text-3xl font-black text-yellow-500 leading-none">10</span>
                 </div>
-                <div class="glass-card px-6 py-4 flex flex-col justify-center bg-white/5 border-none min-w-[90px]">
+                <div class="glass-card px-5 py-4 flex flex-col justify-center bg-white/5 border-none min-w-[100px]">
                     <span class="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-0.5">Difficulty</span>
-                    <span id="currentDiffName" class="text-[11px] font-black tracking-widest text-white/40">EASY</span>
+                    <span id="currentDiffName" class="text-[11px] font-black tracking-widest">EASY</span>
                 </div>
             </div>
             <div class="flex gap-3 items-end">
@@ -215,60 +96,55 @@
                     <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Win Streak</span>
                     <span id="streakCount" class="text-3xl font-black text-green-500 leading-none">0</span>
                 </div>
-                <button onclick="showDifficultySelect()" class="glass-card px-4 py-4 text-[9px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors h-full">
-                    ⇄
-                </button>
+                <button onclick="showDifficultySelect()" title="Change difficulty" class="glass-card px-4 py-4 text-[13px] font-black text-white/30 hover:text-white/60 transition-colors">⇄</button>
             </div>
         </div>
 
         <!-- Progress bar -->
-        <div class="px-2">
-            <div class="progress-track">
-                <div id="progressFill" class="progress-fill" style="width:0%"></div>
-            </div>
-        </div>
+        <div class="px-2"><div class="progress-track"><div id="progressFill" class="progress-fill" style="width:0%"></div></div></div>
 
-        <!-- Summary panel -->
-        <div id="summaryPanel" class="hidden grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
+        <!-- Summary panel — 6 slots -->
+        <div id="summaryPanel" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="glass-card p-3 flex flex-col items-center gap-2">
                 <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Genres</span>
-                <div id="genreSummary" class="flex flex-wrap justify-center gap-1.5"></div>
+                <div id="genreSummary" class="flex flex-wrap justify-center gap-1"></div>
             </div>
-            <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
+            <div class="glass-card p-3 flex flex-col items-center gap-2">
                 <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Year</span>
-                <div id="yearSummary" class="flex justify-center"></div>
+                <div id="yearSummary"></div>
             </div>
-            <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
+            <div class="glass-card p-3 flex flex-col items-center gap-2">
                 <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Studio</span>
-                <div id="studioSummary" class="flex justify-center text-center text-xs"></div>
+                <div id="studioSummary" class="text-center text-xs"></div>
             </div>
-            <div class="glass-card p-4 flex flex-col items-center justify-center space-y-2">
-                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Critic Score</span>
-                <div id="scoreSummary" class="flex justify-center"></div>
+            <div class="glass-card p-3 flex flex-col items-center gap-2">
+                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Critic %</span>
+                <div id="scoreSummary"></div>
+            </div>
+            <div class="glass-card p-3 flex flex-col items-center gap-2">
+                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">MPA Rating</span>
+                <div id="ratingSummary"></div>
+            </div>
+            <div class="glass-card p-3 flex flex-col items-center gap-2">
+                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest">Country</span>
+                <div id="countrySummary" class="text-center text-xs"></div>
             </div>
         </div>
 
-        <!-- Emoji board + hints -->
+        <!-- Emoji board -->
         <div class="glass-card p-10 md:p-16 text-center relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-b from-yellow-500/5 to-transparent pointer-events-none"></div>
             <div id="emojiDisplay" class="emoji-box"></div>
-
             <div id="hintsContainer" class="hidden mt-10 pt-8 border-t border-white/5 space-y-6">
                 <div id="hintText" class="text-sm md:text-base italic text-gray-400 bg-white/5 p-5 rounded-2xl border border-white/5 text-left leading-relaxed"></div>
                 <div class="flex flex-wrap justify-center gap-4">
-                    <button onclick="revealHint('vibe')" id="btnVibe"
-                        class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">
-                        VIBE HINT &minus;1
-                    </button>
-                    <button onclick="revealHint('context')" id="btnContext"
-                        class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">
-                        CONTEXT HINT &minus;2
-                    </button>
+                    <button onclick="revealHint('vibe')" id="btnVibe" class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">VIBE HINT &minus;1</button>
+                    <button onclick="revealHint('context')" id="btnContext" class="bg-white/5 px-6 py-3 rounded-xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">CONTEXT HINT &minus;2</button>
                 </div>
             </div>
         </div>
 
-        <!-- Search input -->
+        <!-- Search -->
         <div class="relative">
             <input type="text" id="movieInput"
                 class="w-full bg-white/5 border border-white/10 rounded-3xl px-8 py-6 outline-none focus:border-yellow-500/50 transition-all text-xl md:text-2xl font-medium placeholder-white/20"
@@ -276,189 +152,173 @@
             <div id="autocompleteResults" class="absolute z-50 w-full mt-3 glass-card max-h-96 overflow-y-auto hidden custom-scrollbar"></div>
         </div>
 
-        <!-- Guess log column headers -->
-        <div class="px-1">
-            <div class="feedback-grid text-[9px] font-black uppercase tracking-widest text-white/20 px-1">
-                <div class="text-center">Title</div>
-                <div class="text-center">Genre</div>
-                <div class="text-center">Year</div>
-                <div class="text-center">Studio</div>
-                <div class="text-center">Critic %</div>
-            </div>
+        <!-- Column headers -->
+        <div class="col-headers text-[9px] font-black uppercase tracking-widest text-white/20 px-1">
+            <div class="text-center">Title</div>
+            <div class="text-center">Genre</div>
+            <div class="text-center">Year</div>
+            <div class="text-center">Studio</div>
+            <div class="text-center">Critic %</div>
+            <div class="text-center">Rating</div>
+            <div class="text-center">Country</div>
         </div>
 
         <!-- Guess history -->
-        <div class="space-y-4">
-            <div id="guessHistory" class="space-y-3"></div>
-        </div>
+        <div id="guessHistory" class="space-y-3"></div>
     </div>
 </div>
 
-<!-- ── Game-over modal ── -->
+<!-- Game-over modal -->
 <div id="gameOverModal" class="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[100] flex items-center justify-center hidden p-6">
-    <div class="glass-card max-w-lg w-full p-10 text-center space-y-10 border-white/10">
+    <div class="glass-card max-w-lg w-full p-10 text-center space-y-8 border-white/10">
         <h2 id="modalTitle" class="text-5xl font-black italic tracking-tighter">RESULT</h2>
         <div class="space-y-3">
             <p class="text-white/30 text-xs font-black uppercase tracking-[0.3em]">The Movie Was</p>
             <p id="targetMovieTitle" class="text-4xl font-black text-white"></p>
             <div id="targetMovieMeta" class="bg-white/5 p-4 rounded-2xl text-[11px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed"></div>
+            <div id="modalEmojis" class="emoji-box text-3xl justify-center pt-2"></div>
         </div>
         <div class="flex flex-col gap-3">
-            <button onclick="startNewGame()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-5 rounded-2xl transition-all text-lg">
-                NEXT LEVEL
-            </button>
-            <button onclick="showDifficultySelect()" class="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-2xl text-[10px] uppercase tracking-widest opacity-40 hover:opacity-80 transition-all">
-                CHANGE DIFFICULTY
-            </button>
+            <button onclick="startNewGame()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-5 rounded-2xl transition-all text-lg">NEXT LEVEL</button>
+            <button onclick="showDifficultySelect()" class="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-2xl text-[10px] uppercase tracking-widest opacity-40 hover:opacity-80 transition-all">CHANGE DIFFICULTY</button>
         </div>
     </div>
 </div>
 
 <script>
+const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩": "Right-Pointing Double Triangle", "⏰": "Alarm Clock", "⏱": "Stopwatch", "⏲": "Timer Clock", "⏳": "Hourglass With Flowing Sand", "⏸": "Double Vertical Bar", "☀": "Sun With Rays", "☁": "Cloud", "☂": "Umbrella", "☃": "Snowman", "☄": "Comet", "☎": "Telephone", "☔": "Umbrella With Rain Drops", "☕": "Hot Beverage", "☘": "Shamrock", "☠": "Skull And Crossbones", "☢": "Radioactive", "☣": "Biohazard", "☦": "Orthodox Cross", "☭": "Hammer And Sickle", "☮": "Peace", "☯": "Yin Yang", "☸": "Wheel Of Dharma", "♀": "Female", "♂": "Male", "♟": "Chess Pawn", "♠": "Spade Suit", "♣": "Club Suit", "♥": "Heart Suit", "♦": "Diamond Suit", "♻": "Universal Recycling", "♾": "Permanent Paper", "♿": "Wheelchair", "⚒": "Hammer And Pick", "⚓": "Anchor", "⚔": "Crossed Swords", "⚕": "Staff Of Aesculapius", "⚖": "Scales", "⚗": "Alembic", "⚙": "Gear", "⚛": "Atom", "⚜": "Fleur-De-Lis", "⚠": "Warning", "⚡": "High Voltage", "⚧": "Male With Stroke And Male And Female", "⚪": "Medium Circle", "⚫": "Medium Circle", "⚰": "Coffin", "⚱": "Funeral Urn", "⚽": "Soccer Ball", "⚾": "Baseball", "⛄": "Snowman Without Snow", "⛅": "Sun Behind Cloud", "⛈": "Thunder Cloud And Rain", "⛏": "Pick", "⛓": "Chains", "⛩": "Shinto Shrine", "⛪": "Church", "⛰": "Mountain", "⛱": "Umbrella On Ground", "⛲": "Fountain", "⛳": "Flag In Hole", "⛴": "Ferry", "⛵": "Sailboat", "⛷": "Skier", "⛸": "Ice Skate", "⛹": "Person With Ball", "⛺": "Tent", "⛽": "Fuel Pump", "✂": "Scissors", "✅": "Check Mark", "✈": "Airplane", "✉": "Envelope", "✊": "Raised Fist", "✋": "Raised Hand", "✌": "Victory Hand", "✍": "Writing Hand", "✏": "Pencil", "✒": "Nib", "✔": "Check Mark", "✝": "Latin Cross", "✡": "Star Of David", "✨": "Sparkles", "❄": "Snowflake", "❌": "Cross Mark", "❓": "Question Mark Ornament", "❔": "Question Mark Ornament", "❤": "Heart", "➰": "Curly Loop", "⬛": "Large Square", "⬜": "Large Square", "⭐": "Medium Star", "⭕": "Large Circle", "乱": "Cjk Unified Ideograph-4E71", "兄": "Cjk Unified Ideograph-5144", "古": "Cjk Unified Ideograph-53E4", "孤": "Cjk Unified Ideograph-5B64", "弟": "Cjk Unified Ideograph-5F1F", "混": "Cjk Unified Ideograph-6Df7", "独": "Cjk Unified Ideograph-72Ec", "界": "Cjk Unified Ideograph-754C", "考": "Cjk Unified Ideograph-8003", "边": "Cjk Unified Ideograph-8Fb9", "霓": "Cjk Unified Ideograph-9713", "🀄": "Mahjong Tile Red Dragon", "🃏": "Playing Card Joker", "🆓": "Squared Free", "🆕": "Squared New", "🆘": "Squared Sos", "🆙": "Squared Up With Exclamation Mark", "🆚": "Squared Vs", "🇦": "Regional Indicator Letter A", "🇧": "Regional Indicator Letter B", "🇨": "Regional Indicator Letter C", "🇩": "Regional Indicator Letter D", "🇪": "Regional Indicator Letter E", "🇫": "Regional Indicator Letter F", "🇬": "Regional Indicator Letter G", "🇭": "Regional Indicator Letter H", "🇮": "Regional Indicator Letter I", "🇯": "Regional Indicator Letter J", "🇰": "Regional Indicator Letter K", "🇱": "Regional Indicator Letter L", "🇲": "Regional Indicator Letter M", "🇳": "Regional Indicator Letter N", "🇴": "Regional Indicator Letter O", "🇵": "Regional Indicator Letter P", "🇶": "Regional Indicator Letter Q", "🇷": "Regional Indicator Letter R", "🇸": "Regional Indicator Letter S", "🇹": "Regional Indicator Letter T", "🇺": "Regional Indicator Letter U", "🇻": "Regional Indicator Letter V", "🇼": "Regional Indicator Letter W", "🇽": "Regional Indicator Letter X", "🇾": "Regional Indicator Letter Y", "🇿": "Regional Indicator Letter Z", "🌀": "Cyclone", "🌁": "Foggy", "🌂": "Closed Umbrella", "🌃": "Night With Stars", "🌄": "Sunrise Over Mountains", "🌅": "Sunrise", "🌆": "Cityscape At Dusk", "🌇": "Sunset Over Buildings", "🌈": "Rainbow", "🌉": "Bridge At Night", "🌊": "Water Wave", "🌋": "Volcano", "🌌": "Milky Way", "🌍": "Earth Globe Europe-Africa", "🌎": "Earth Globe Americas", "🌏": "Earth Globe Asia-Australia", "🌐": "Globe With Meridians", "🌑": "New Moon", "🌒": "Waxing Crescent Moon", "🌓": "First Quarter Moon", "🌕": "Full Moon", "🌖": "Waning Gibbous Moon", "🌗": "Last Quarter Moon", "🌘": "Waning Crescent Moon", "🌙": "Crescent Moon", "🌚": "New Moon With Face", "🌜": "Last Quarter Moon With Face", "🌞": "Sun With Face", "🌟": "Glowing Star", "🌠": "Shooting Star", "🌡": "Thermometer", "🌤": "Sun With Small Cloud", "🌥": "Sun Behind Cloud", "🌦": "Sun Behind Cloud With Rain", "🌧": "Cloud With Rain", "🌨": "Cloud With Snow", "🌩": "Cloud With Lightning", "🌪": "Cloud With Tornado", "🌫": "Fog", "🌬": "Wind Blowing Face", "🌭": "Hot Dog", "🌮": "Taco", "🌯": "Burrito", "🌰": "Chestnut", "🌱": "Seedling", "🌲": "Evergreen Tree", "🌳": "Deciduous Tree", "🌴": "Palm Tree", "🌵": "Cactus", "🌶": "Hot Pepper", "🌷": "Tulip", "🌸": "Cherry Blossom", "🌹": "Rose", "🌺": "Hibiscus", "🌻": "Sunflower", "🌼": "Blossom", "🌽": "Ear Of Maize", "🌾": "Ear Of Rice", "🌿": "Herb", "🍀": "Four Leaf Clover", "🍁": "Maple Leaf", "🍂": "Fallen Leaf", "🍃": "Leaf Fluttering In Wind", "🍄": "Mushroom", "🍅": "Tomato", "🍆": "Aubergine", "🍇": "Grapes", "🍉": "Watermelon", "🍊": "Tangerine", "🍋": "Lemon", "🍌": "Banana", "🍍": "Pineapple", "🍎": "Red Apple", "🍏": "Green Apple", "🍐": "Pear", "🍑": "Peach", "🍒": "Cherries", "🍓": "Strawberry", "🍔": "Hamburger", "🍕": "Slice Of Pizza", "🍖": "Meat On Bone", "🍗": "Poultry Leg", "🍚": "Cooked Rice", "🍛": "Curry And Rice", "🍜": "Steaming Bowl", "🍝": "Spaghetti", "🍞": "Bread", "🍟": "French Fries", "🍣": "Sushi", "🍤": "Fried Shrimp", "🍥": "Fish Cake With Swirl Design", "🍦": "Soft Ice Cream", "🍧": "Shaved Ice", "🍨": "Ice Cream", "🍩": "Doughnut", "🍪": "Cookie", "🍫": "Chocolate Bar", "🍬": "Candy", "🍭": "Lollipop", "🍮": "Custard", "🍯": "Honey Pot", "🍰": "Shortcake", "🍱": "Bento Box", "🍲": "Pot Of Food", "🍳": "Cooking", "🍴": "Fork And Knife", "🍵": "Teacup Without Handle", "🍶": "Sake Bottle And Cup", "🍷": "Wine Glass", "🍸": "Cocktail Glass", "🍹": "Tropical Drink", "🍺": "Beer Mug", "🍻": "Clinking Beer Mugs", "🍼": "Baby Bottle", "🍽": "Fork And Knife With Plate", "🍾": "Bottle With Popping Cork", "🍿": "Popcorn", "🎀": "Ribbon", "🎁": "Wrapped Present", "🎂": "Birthday Cake", "🎃": "Jack-O-Lantern", "🎄": "Christmas Tree", "🎅": "Father Christmas", "🎆": "Fireworks", "🎇": "Firework Sparkler", "🎈": "Balloon", "🎉": "Party Popper", "🎊": "Confetti Ball", "🎋": "Tanabata Tree", "🎌": "Crossed Flags", "🎍": "Pine Decoration", "🎎": "Japanese Dolls", "🎐": "Wind Chime", "🎒": "School Satchel", "🎓": "Graduation Cap", "🎖": "Military Medal", "🎗": "Reminder Ribbon", "🎙": "Studio Microphone", "🎚": "Level Slider", "🎛": "Control Knobs", "🎞": "Film Frames", "🎟": "Admission Tickets", "🎠": "Carousel Horse", "🎡": "Ferris Wheel", "🎢": "Roller Coaster", "🎣": "Fishing Pole And Fish", "🎤": "Microphone", "🎥": "Movie Camera", "🎦": "Cinema", "🎧": "Headphone", "🎨": "Artist Palette", "🎩": "Top Hat", "🎪": "Circus Tent", "🎫": "Ticket", "🎬": "Clapper Board", "🎭": "Performing Arts", "🎮": "Video Game", "🎯": "Direct Hit", "🎰": "Slot Machine", "🎱": "Billiards", "🎲": "Game Die", "🎳": "Bowling", "🎴": "Flower Playing Cards", "🎵": "Musical Note", "🎶": "Multiple Musical Notes", "🎷": "Saxophone", "🎸": "Guitar", "🎹": "Musical Keyboard", "🎺": "Trumpet", "🎻": "Violin", "🎼": "Musical Score", "🎽": "Running Shirt With Sash", "🎾": "Tennis Racquet And Ball", "🎿": "Ski And Ski Boot", "🏀": "Basketball And Hoop", "🏁": "Chequered Flag", "🏂": "Snowboarder", "🏃": "Runner", "🏄": "Surfer", "🏅": "Sports Medal", "🏆": "Trophy", "🏇": "Horse Racing", "🏈": "American Football", "🏉": "Rugby Football", "🏊": "Swimmer", "🏋": "Weight Lifter", "🏌": "Golfer", "🏍": "Racing Motorcycle", "🏎": "Racing Car", "🏏": "Cricket Bat And Ball", "🏐": "Volleyball", "🏑": "Field Hockey Stick And Ball", "🏒": "Ice Hockey Stick And Puck", "🏓": "Table Tennis Paddle And Ball", "🏔": "Snow Capped Mountain", "🏕": "Camping", "🏖": "Beach With Umbrella", "🏗": "Building Construction", "🏘": "House Buildings", "🏙": "Cityscape", "🏚": "Derelict House Building", "🏛": "Classical Building", "🏜": "Desert", "🏝": "Desert Island", "🏞": "National Park", "🏟": "Stadium", "🏠": "House Building", "🏡": "House With Garden", "🏢": "Office Building", "🏤": "European Post Office", "🏥": "Hospital", "🏦": "Bank", "🏧": "Automated Teller Machine", "🏨": "Hotel", "🏩": "Love Hotel", "🏪": "Convenience Store", "🏫": "School", "🏬": "Department Store", "🏭": "Factory", "🏮": "Izakaya Lantern", "🏯": "Japanese Castle", "🏰": "European Castle", "🏳": "Waving Flag", "🏴": "Waving Flag", "🏵": "Rosette", "🏷": "Label", "🏸": "Badminton Racquet And Shuttlecock", "🏹": "Bow And Arrow", "🏺": "Amphora", "🏻": "Emoji Modifier Fitzpatrick Type-1-2", "🏼": "Emoji Modifier Fitzpatrick Type-3", "🏽": "Emoji Modifier Fitzpatrick Type-4", "🏾": "Emoji Modifier Fitzpatrick Type-5", "🏿": "Emoji Modifier Fitzpatrick Type-6", "🐀": "Rat", "🐁": "Mouse", "🐂": "Ox", "🐄": "Cow", "🐅": "Tiger", "🐆": "Leopard", "🐇": "Rabbit", "🐈": "Cat", "🐉": "Dragon", "🐊": "Crocodile", "🐋": "Whale", "🐌": "Snail", "🐍": "Snake", "🐎": "Horse", "🐏": "Ram", "🐐": "Goat", "🐑": "Sheep", "🐒": "Monkey", "🐓": "Rooster", "🐔": "Chicken", "🐕": "Dog", "🐖": "Pig", "🐗": "Boar", "🐘": "Elephant", "🐙": "Octopus", "🐚": "Spiral Shell", "🐛": "Bug", "🐜": "Ant", "🐝": "Honeybee", "🐞": "Lady Beetle", "🐟": "Fish", "🐠": "Tropical Fish", "🐡": "Blowfish", "🐢": "Turtle", "🐦": "Bird", "🐧": "Penguin", "🐨": "Koala", "🐩": "Poodle", "🐪": "Dromedary Camel", "🐫": "Bactrian Camel", "🐬": "Dolphin", "🐭": "Mouse Face", "🐮": "Cow Face", "🐯": "Tiger Face", "🐰": "Rabbit Face", "🐱": "Cat Face", "🐲": "Dragon Face", "🐳": "Spouting Whale", "🐴": "Horse Face", "🐵": "Monkey Face", "🐶": "Dog Face", "🐷": "Pig Face", "🐸": "Frog Face", "🐹": "Hamster Face", "🐺": "Wolf Face", "🐻": "Bear Face", "🐼": "Panda Face", "🐾": "Paw Prints", "🐿": "Chipmunk", "👀": "Eyes", "👁": "Eye", "👂": "Ear", "👃": "Nose", "👄": "Mouth", "👅": "Tongue", "👊": "Fisted Hand", "👋": "Waving Hand", "👏": "Clapping Hands", "👐": "Open Hands", "👑": "Crown", "👒": "Womans Hat", "👓": "Eyeglasses", "👔": "Necktie", "👕": "T-Shirt", "👖": "Jeans", "👗": "Dress", "👘": "Kimono", "👙": "Bikini", "👜": "Handbag", "👞": "Mans Shoe", "👟": "Athletic Shoe", "👠": "High-Heeled Shoe", "👢": "Womans Boots", "👣": "Footprints", "👤": "Bust In Silhouette", "👥": "Busts In Silhouette", "👦": "Boy", "👧": "Girl", "👨": "Man", "👩": "Woman", "👪": "Family", "👫": "Man And Woman Holding Hands", "👬": "Two Men Holding Hands", "👭": "Two Women Holding Hands", "👮": "Police Officer", "👯": "Woman With Bunny Ears", "👰": "Bride With Veil", "👱": "Person With Blond Hair", "👳": "Man With Turban", "👴": "Older Man", "👵": "Older Woman", "👶": "Baby", "👷": "Construction Worker", "👸": "Princess", "👹": "Japanese Ogre", "👺": "Japanese Goblin", "👻": "Ghost", "👼": "Baby Angel", "👽": "Extraterrestrial Alien", "👾": "Alien Monster", "👿": "Imp", "💀": "Skull", "💂": "Guardsman", "💃": "Dancer", "💄": "Lipstick", "💅": "Nail Polish", "💆": "Face Massage", "💇": "Haircut", "💈": "Barber Pole", "💉": "Syringe", "💊": "Pill", "💋": "Kiss Mark", "💌": "Love Letter", "💍": "Ring", "💎": "Gem Stone", "💏": "Kiss", "💐": "Bouquet", "💑": "Couple With Heart", "💒": "Wedding", "💓": "Beating Heart", "💔": "Broken Heart", "💕": "Two Hearts", "💖": "Sparkling Heart", "💗": "Growing Heart", "💘": "Heart With Arrow", "💙": "Blue Heart", "💚": "Green Heart", "💛": "Yellow Heart", "💜": "Purple Heart", "💞": "Revolving Hearts", "💡": "Electric Light Bulb", "💢": "Anger", "💣": "Bomb", "💤": "Sleeping", "💥": "Collision", "💦": "Splashing Sweat", "💧": "Droplet", "💨": "Dash", "💩": "Pile Of Poo", "💪": "Flexed Biceps", "💫": "Dizzy", "💬": "Speech Balloon", "💭": "Thought Balloon", "💮": "Flower", "💯": "Hundred Points", "💰": "Money Bag", "💱": "Currency Exchange", "💳": "Credit Card", "💵": "Banknote With Dollar", "💶": "Banknote With Euro", "💷": "Banknote With Pound", "💸": "Money With Wings", "💹": "Chart With Upwards Trend And Yen", "💺": "Seat", "💻": "Personal Computer", "💼": "Briefcase", "💽": "Minidisc", "💾": "Floppy Disk", "💿": "Optical Disc", "📀": "Dvd", "📁": "File Folder", "📂": "Open File Folder", "📄": "Page Facing Up", "📅": "Calendar", "📇": "Card Index", "📈": "Chart With Upwards Trend", "📉": "Chart With Downwards Trend", "📊": "Bar Chart", "📋": "Clipboard", "📍": "Round Pushpin", "📎": "Paperclip", "📏": "Straight Ruler", "📐": "Triangular Ruler", "📑": "Bookmark Tabs", "📒": "Ledger", "📓": "Notebook", "📔": "Notebook With Decorative Cover", "📕": "Closed Book", "📖": "Open Book", "📘": "Blue Book", "📚": "Books", "📜": "Scroll", "📝": "Memo", "📞": "Telephone Receiver", "📟": "Pager", "📠": "Fax Machine", "📡": "Satellite Antenna", "📢": "Public Address Loudspeaker", "📣": "Cheering Megaphone", "📦": "Package", "📧": "E-Mail", "📩": "Envelope With Downwards Arrow Above", "📬": "Open Mailbox With Raised Flag", "📮": "Postbox", "📯": "Postal Horn", "📰": "Newspaper", "📱": "Mobile Phone", "📴": "Mobile Phone Off", "📵": "No Mobile Phones", "📶": "Antenna With Bars", "📷": "Camera", "📸": "Camera With Flash", "📹": "Video Camera", "📺": "Television", "📻": "Radio", "📼": "Videocassette", "📽": "Film Projector", "📿": "Prayer Beads", "🔀": "Twisted Rightwards Arrows", "🔁": "Clockwise Rightwards And Leftwards Open Circle Arrows", "🔂": "Clockwise Rightwards And Leftwards Open Circle Arrows With Circled One Overlay", "🔄": "Anticlockwise Downwards And Upwards Open Circle Arrows", "🔇": "Speaker With Cancellation Stroke", "🔉": "Speaker With One Sound Wave", "🔊": "Speaker With Three Sound Waves", "🔋": "Battery", "🔌": "Electric Plug", "🔍": "Left-Pointing Magnifying Glass", "🔎": "Right-Pointing Magnifying Glass", "🔏": "Lock With Ink Pen", "🔐": "Closed Lock With Key", "🔑": "Key", "🔒": "Lock", "🔓": "Open Lock", "🔔": "Bell", "🔕": "Bell With Cancellation Stroke", "🔗": "Link", "🔘": "Radio Button", "🔙": "Back With Leftwards Arrow Above", "🔚": "End With Leftwards Arrow Above", "🔝": "Top With Upwards Arrow Above", "🔞": "No One Under Eighteen", "🔟": "Keycap Ten", "🔡": "Input For Latin Small Letters", "🔢": "Input For Numbers", "🔤": "Input For Latin Letters", "🔥": "Fire", "🔦": "Electric Torch", "🔧": "Wrench", "🔨": "Hammer", "🔩": "Nut And Bolt", "🔪": "Hocho", "🔫": "Pistol", "🔬": "Microscope", "🔭": "Telescope", "🔮": "Crystal Ball", "🔯": "Six Pointed Star With Middle Dot", "🔱": "Trident Emblem", "🔲": "Square Button", "🔳": "Square Button", "🔴": "Large Red Circle", "🔵": "Large Blue Circle", "🕉": "Om", "🕊": "Dove Of Peace", "🕋": "Kaaba", "🕌": "Mosque", "🕍": "Synagogue", "🕎": "Menorah With Nine Branches", "🕒": "Clock Face Three Oclock", "🕓": "Clock Face Four Oclock", "🕙": "Clock Face Ten Oclock", "🕛": "Clock Face Twelve Oclock", "🕯": "Candle", "🕰": "Mantelpiece Clock", "🕳": "Hole", "🕴": "Man In Business Suit Levitating", "🕵": "Sleuth Or Spy", "🕶": "Dark Sunglasses", "🕷": "Spider", "🕸": "Spider Web", "🕹": "Joystick", "🕺": "Man Dancing", "🖇": "Linked Paperclips", "🖊": "Lower Left Ballpoint Pen", "🖋": "Lower Left Fountain Pen", "🖌": "Lower Left Paintbrush", "🖍": "Lower Left Crayon", "🖐": "Raised Hand With Fingers Splayed", "🖕": "Reversed Hand With Middle Finger Extended", "🖖": "Raised Hand With Part Between Middle And Ring Fingers", "🖤": "Heart", "🖥": "Desktop Computer", "🖨": "Printer", "🖱": "Three Button Mouse", "🖼": "Frame With Picture", "🗂": "Card Index Dividers", "🗃": "Card File Box", "🗄": "File Cabinet", "🗑": "Wastebasket", "🗓": "Spiral Calendar Pad", "🗜": "Compression", "🗝": "Old Key", "🗞": "Rolled-Up Newspaper", "🗡": "Dagger Knife", "🗣": "Speaking Head In Silhouette", "🗨": "Left Speech Bubble", "🗯": "Right Anger Bubble", "🗳": "Ballot Box With Ballot", "🗺": "World Map", "🗻": "Mount Fuji", "🗼": "Tokyo Tower", "🗽": "Statue Of Liberty", "🗾": "Silhouette Of Japan", "🗿": "Moyai", "😂": "Face With Tears Of Joy", "😃": "Smiling Face With Open Mouth", "😅": "Smiling Face With Open Mouth And Cold Sweat", "😆": "Smiling Face With Open Mouth And Tightly-Closed Eyes", "😇": "Smiling Face With Halo", "😈": "Smiling Face With Horns", "😊": "Smiling Face With Smiling Eyes", "😎": "Smiling Face With Sunglasses", "😏": "Smirking Face", "😐": "Neutral Face", "😒": "Unamused Face", "😓": "Face With Cold Sweat", "😔": "Pensive Face", "😟": "Worried Face", "😠": "Angry Face", "😡": "Pouting Face", "😢": "Crying Face", "😤": "Face With Look Of Triumph", "😨": "Fearful Face", "😩": "Weary Face", "😫": "Tired Face", "😬": "Grimacing Face", "😭": "Loudly Crying Face", "😮": "Face With Open Mouth", "😰": "Face With Open Mouth And Cold Sweat", "😱": "Face Screaming In Fear", "😲": "Astonished Face", "😳": "Flushed Face", "😴": "Sleeping Face", "😵": "Dizzy Face", "😶": "Face Without Mouth", "😷": "Face With Medical Mask", "😺": "Smiling Cat Face With Open Mouth", "😾": "Pouting Cat Face", "😿": "Crying Cat Face", "🙄": "Face With Rolling Eyes", "🙈": "See-No-Evil Monkey", "🙊": "Speak-No-Evil Monkey", "🙌": "Person Raising Both Hands In Celebration", "🙏": "Person With Folded Hands", "🚀": "Rocket", "🚁": "Helicopter", "🚂": "Steam Locomotive", "🚃": "Railway Car", "🚄": "High-Speed Train", "🚅": "High-Speed Train With Bullet Nose", "🚆": "Train", "🚇": "Metro", "🚈": "Light Rail", "🚉": "Station", "🚊": "Tram", "🚋": "Tram Car", "🚌": "Bus", "🚍": "Oncoming Bus", "🚏": "Bus Stop", "🚐": "Minibus", "🚑": "Ambulance", "🚒": "Fire Engine", "🚓": "Police Car", "🚔": "Oncoming Police Car", "🚕": "Taxi", "🚖": "Oncoming Taxi", "🚗": "Automobile", "🚘": "Oncoming Automobile", "🚙": "Recreational Vehicle", "🚚": "Delivery Truck", "🚛": "Articulated Lorry", "🚜": "Tractor", "🚞": "Mountain Railway", "🚠": "Mountain Cableway", "🚢": "Ship", "🚣": "Rowboat", "🚤": "Speedboat", "🚥": "Horizontal Traffic Light", "🚦": "Vertical Traffic Light", "🚧": "Construction", "🚨": "Police Cars Revolving Light", "🚩": "Triangular Flag On Post", "🚪": "Door", "🚫": "No Entry", "🚬": "Smoking", "🚭": "No Smoking", "🚮": "Put Litter In Its Place", "🚰": "Potable Water", "🚱": "Non-Potable Water", "🚲": "Bicycle", "🚴": "Bicyclist", "🚵": "Mountain Bicyclist", "🚶": "Pedestrian", "🚷": "No Pedestrians", "🚺": "Womens", "🚻": "Restroom", "🚽": "Toilet", "🚿": "Shower", "🛀": "Bath", "🛁": "Bathtub", "🛂": "Passport Control", "🛋": "Couch And Lamp", "🛌": "Sleeping Accommodation", "🛍": "Shopping Bags", "🛎": "Bellhop Bell", "🛏": "Bed", "🛐": "Place Of Worship", "🛑": "Octagonal", "🛒": "Shopping Trolley", "🛕": "Hindu Temple", "🛖": "Hut", "🛗": "Elevator", "🛟": "Ring Buoy", "🛠": "Hammer And Wrench", "🛡": "Shield", "🛢": "Oil Drum", "🛣": "Motorway", "🛤": "Railway Track", "🛥": "Motor Boat", "🛩": "Small Airplane", "🛫": "Airplane Departure", "🛬": "Airplane Arriving", "🛰": "Satellite", "🛳": "Passenger Ship", "🛵": "Motor Scooter", "🛶": "Canoe", "🛷": "Sled", "🛸": "Flying Saucer", "🛹": "Skateboard", "🛺": "Auto Rickshaw", "🛻": "Pickup Truck", "🛼": "Roller Skate", "🟠": "Large Orange Circle", "🟡": "Large Yellow Circle", "🟢": "Large Green Circle", "🟣": "Large Purple Circle", "🟦": "Large Blue Square", "🟩": "Large Green Square", "🤌": "Pinched Fingers", "🤍": "Heart", "🤏": "Pinching Hand", "🤐": "Zipper-Mouth Face", "🤑": "Money-Mouth Face", "🤒": "Face With Thermometer", "🤓": "Nerd Face", "🤔": "Thinking Face", "🤕": "Face With Head-Bandage", "🤖": "Robot Face", "🤗": "Hugging Face", "🤘": "Of The Horns", "🤙": "Call Me Hand", "🤛": "Left-Facing Fist", "🤜": "Right-Facing Fist", "🤝": "Handshake", "🤞": "Hand With Index And Middle Fingers Crossed", "🤟": "I Love You Hand", "🤠": "Face With Cowboy Hat", "🤡": "Clown Face", "🤢": "Nauseated Face", "🤣": "Rolling On The Floor Laughing", "🤥": "Lying Face", "🤦": "Face Palm", "🤧": "Sneezing Face", "🤨": "Face With One Eyebrow Raised", "🤪": "Grinning Face With One Large And One Small Eye", "🤫": "Face With Finger Covering Closed Lips", "🤬": "Serious Face With s Covering Mouth", "🤮": "Face With Open Mouth Vomiting", "🤯": "Shocked Face With Exploding Head", "🤰": "Pregnant Woman", "🤱": "Breast-Feeding", "🤲": "Palms Up Together", "🤳": "Selfie", "🤴": "Prince", "🤵": "Man In Tuxedo", "🤷": "Shrug", "🤸": "Person Doing Cartwheel", "🤹": "Juggling", "🤺": "Fencer", "🤼": "Wrestlers", "🤾": "Handball", "🤿": "Diving Mask", "🥀": "Wilted Flower", "🥁": "Drum With Drumsticks", "🥂": "Clinking Glasses", "🥃": "Tumbler Glass", "🥅": "Goal Net", "🥇": "First Place Medal", "🥈": "Second Place Medal", "🥉": "Third Place Medal", "🥊": "Boxing Glove", "🥋": "Martial Arts Uniform", "🥎": "Softball", "🥐": "Croissant", "🥑": "Avocado", "🥒": "Cucumber", "🥓": "Bacon", "🥔": "Potato", "🥕": "Carrot", "🥖": "Baguette Bread", "🥗": "Green Salad", "🥘": "Shallow Pan Of Food", "🥙": "Stuffed Flatbread", "🥚": "Egg", "🥛": "Glass Of Milk", "🥜": "Peanuts", "🥞": "Pancakes", "🥟": "Dumpling", "🥠": "Fortune Cookie", "🥡": "Takeout Box", "🥢": "Chopsticks", "🥣": "Bowl With Spoon", "🥤": "Cup With Straw", "🥥": "Coconut", "🥦": "Broccoli", "🥧": "Pie", "🥨": "Pretzel", "🥩": "Cut Of Meat", "🥪": "Sandwich", "🥫": "Canned Food", "🥬": "Leafy Green", "🥯": "Bagel", "🥱": "Yawning Face", "🥳": "Face With Party Horn And Party Hat", "🥴": "Face With Uneven Eyes And Wavy Mouth", "🥵": "Overheated Face", "🥶": "Freezing Face", "🥷": "Ninja", "🥸": "Disguised Face", "🥻": "Sari", "🥼": "Lab Coat", "🥽": "Goggles", "🥾": "Hiking Boot", "🥿": "Flat Shoe", "🦀": "Crab", "🦁": "Lion Face", "🦂": "Scorpion", "🦃": "Turkey", "🦄": "Unicorn Face", "🦅": "Eagle", "🦆": "Duck", "🦇": "Bat", "🦈": "Shark", "🦉": "Owl", "🦊": "Fox Face", "🦋": "Butterfly", "🦌": "Deer", "🦍": "Gorilla", "🦎": "Lizard", "🦏": "Rhinoceros", "🦐": "Shrimp", "🦑": "Squid", "🦒": "Giraffe Face", "🦓": "Zebra Face", "🦔": "Hedgehog", "🦕": "Sauropod", "🦖": "T-Rex", "🦗": "Cricket", "🦘": "Kangaroo", "🦙": "Llama", "🦚": "Peacock", "🦛": "Hippopotamus", "🦜": "Parrot", "🦝": "Raccoon", "🦞": "Lobster", "🦟": "Mosquito", "🦠": "Microbe", "🦢": "Swan", "🦣": "Mammoth", "🦥": "Sloth", "🦦": "Otter", "🦧": "Orangutan", "🦩": "Flamingo", "🦫": "Beaver", "🦭": "Seal", "🦮": "Guide Dog", "🦯": "Probing Cane", "🦰": "Emoji Component Red Hair", "🦱": "Emoji Component Curly Hair", "🦲": "Emoji Component Bald", "🦳": "Emoji Component Hair", "🦴": "Bone", "🦵": "Leg", "🦶": "Foot", "🦷": "Tooth", "🦸": "Superhero", "🦹": "Supervillain", "🦺": "Safety Vest", "🦽": "Manual Wheelchair", "🦾": "Mechanical Arm", "🦿": "Mechanical Leg", "🧀": "Cheese Wedge", "🧁": "Cupcake", "🧂": "Salt Shaker", "🧅": "Onion", "🧈": "Butter", "🧉": "Mate Drink", "🧊": "Ice Cube", "🧌": "Troll", "🧍": "Standing Person", "🧏": "Deaf Person", "🧐": "Face With Monocle", "🧑": "Adult", "🧒": "Child", "🧓": "Older Adult", "🧔": "Bearded Person", "🧕": "Person With Headscarf", "🧖": "Person In Steamy Room", "🧗": "Person Climbing", "🧘": "Person In Lotus Position", "🧙": "Mage", "🧚": "Fairy", "🧛": "Vampire", "🧜": "Merperson", "🧝": "Elf", "🧞": "Genie", "🧟": "Zombie", "🧠": "Brain", "🧡": "Orange Heart", "🧢": "Billed Cap", "🧣": "Scarf", "🧤": "Gloves", "🧥": "Coat", "🧧": "Red Gift Envelope", "🧨": "Firecracker", "🧩": "Jigsaw Puzzle Piece", "🧪": "Test Tube", "🧫": "Petri Dish", "🧬": "Dna Double Helix", "🧭": "Compass", "🧮": "Abacus", "🧯": "Fire Extinguisher", "🧱": "Brick", "🧲": "Magnet", "🧳": "Luggage", "🧴": "Lotion Bottle", "🧵": "Spool Of Thread", "🧶": "Ball Of Yarn", "🧸": "Teddy Bear", "🧹": "Broom", "🧺": "Basket", "🧼": "Bar Of Soap", "🧽": "Sponge", "🧾": "Receipt", "🧿": "Nazar Amulet", "🩰": "Ballet Shoes", "🩲": "Briefs", "🩳": "Shorts", "🩶": "Grey Heart", "🩸": "Drop Of Blood", "🩹": "Adhesive Bandage", "🩺": "Stethoscope", "🩻": "X-Ray", "🪁": "Kite", "🪂": "Parachute", "🪃": "Boomerang", "🪄": "Magic Wand", "🪆": "Nesting Dolls", "🪐": "Ringed Planet", "🪑": "Chair", "🪒": "Razor", "🪓": "Axe", "🪔": "Diya Lamp", "🪕": "Banjo", "🪖": "Military Helmet", "🪗": "Accordion", "🪘": "Long Drum", "🪙": "Coin", "🪚": "Carpentry Saw", "🪜": "Ladder", "🪝": "Hook", "🪞": "Mirror", "🪟": "Window", "🪠": "Plunger", "🪡": "Sewing Needle", "🪢": "Knot", "🪣": "Bucket", "🪤": "Mouse Trap", "🪦": "Headstone", "🪧": "Placard", "🪨": "Rock", "🪩": "Mirror Ball", "🪪": "Identification Card", "🪫": "Low Battery", "🪭": "Folding Hand Fan", "🪮": "Hair Pick", "🪰": "Fly", "🪱": "Worm", "🪲": "Beetle", "🪳": "Cockroach", "🪴": "Potted Plant", "🪵": "Wood", "🪶": "Feather", "🪸": "Coral", "🪽": "Wing", "🫀": "Anatomical Heart", "🫁": "Lungs", "🫂": "People Hugging", "🫏": "Donkey", "🫐": "Blueberries", "🫖": "Teapot", "🫘": "Beans", "🫡": "Saluting Face", "🫥": "Dotted Line Face", "🫦": "Biting Lip", "🫧": "Bubbles", "🫨": "Shaking Face", "󠁢": "Tag Latin Small Letter B", "󠁣": "Tag Latin Small Letter C", "󠁥": "Tag Latin Small Letter E", "󠁧": "Tag Latin Small Letter G", "󠁬": "Tag Latin Small Letter L", "󠁮": "Tag Latin Small Letter N", "󠁳": "Tag Latin Small Letter S", "󠁴": "Tag Latin Small Letter T", "󠁷": "Tag Latin Small Letter W", "󠁿": "Cancel Tag"};
+
     // ── State ──
-    let movieDB       = [];
-    let difficultyMap = {};
-    let currentDifficulty = 'Easy Mode';
-    let targetMovie   = null;
-    let guessesLeft   = 10;
-    let revealCount   = 1;
-    let currentEmojis = [];
-    let guessedTitles = new Set();
-    let foundGenres   = new Set();
-    let yearBounds    = { min: null, max: null };
-    let hintVibeUsed    = false;
-    let hintContextUsed = false;
-
+    let movieDB = [], difficultyMap = {}, currentDifficulty = 'Easy Mode';
+    let targetMovie = null, guessesLeft = 10, revealCount = 1, currentEmojis = [];
+    let guessedTitles = new Set(), foundGenres = new Set(), yearBounds = { min: null, max: null };
+    let hintVibeUsed = false, hintContextUsed = false;
     const MAX_GUESSES = 10;
-    const segmenter   = new Intl.Segmenter('en', { granularity: 'grapheme' });
+    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
 
-    // ── Helpers ──
-    const cleanTitle      = str => str ? str.trim() : '';
+    const cleanTitle = str => str ? str.trim() : '';
     const normalizeString = str => str ? str.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 
-    function showNotification(msg, colour = '#ef4444') {
+    // ── Emoji tooltip helpers ──
+    function emojiName(grapheme) {
+        if (EMOJI_NAMES[grapheme]) return EMOJI_NAMES[grapheme];
+        const first = [...grapheme][0];
+        return EMOJI_NAMES[first] || null;
+    }
+    function makeEmojiHtml(emojis) {
+        return emojis.map(e => {
+            const name = emojiName(e);
+            return name
+                ? `<span class="emoji-wrap">${e}<span class="emoji-tip">${name}</span></span>`
+                : `<span class="emoji-wrap">${e}</span>`;
+        }).join('');
+    }
+
+    function showNotification(msg) {
         const div = document.createElement('div');
         div.className = 'notification';
-        div.style.background = colour;
         div.textContent = msg;
         document.body.appendChild(div);
         setTimeout(() => div.remove(), 2600);
     }
 
-    // ── Load CSVs ──
+    // ── Load CSVs side-loaded ──
     window.onload = async function () {
         const statusEl = document.getElementById('loadingStatus');
         try {
-            statusEl.textContent = 'Loading Movie Database (movies.csv)…';
+            statusEl.textContent = 'Loading data files…';
             const [mainRes, diffRes] = await Promise.all([fetch('movies.csv'), fetch('difficulty.csv')]);
-            if (!mainRes.ok) throw new Error('Could not find movies.csv');
-            if (!diffRes.ok) throw new Error('Could not find difficulty.csv');
+            if (!mainRes.ok) throw new Error('movies.csv not found');
+            if (!diffRes.ok) throw new Error('difficulty.csv not found');
             const [mainText, diffText] = await Promise.all([mainRes.text(), diffRes.text()]);
 
-            statusEl.textContent = 'Parsing data…';
-
-            // Build difficulty map: Title → Difficulty string
             Papa.parse(diffText, {
                 header: true, skipEmptyLines: true,
                 complete({ data }) {
                     data.forEach(row => {
-                        if (row.Title) difficultyMap[cleanTitle(row.Title)] = (row.Difficulty || '').trim();
+                        if (row.Title) difficultyMap[cleanTitle(row.Title)] = {
+                            Difficulty: (row.Difficulty || '').trim(),
+                            Rating:     (row.Rating    || '').trim(),
+                            Country:    (row.Country   || '').trim(),
+                            Language:   (row.Language  || '').trim(),
+                        };
                     });
-
-                    // Build movie DB
                     Papa.parse(mainText, {
                         header: true, skipEmptyLines: true,
                         complete({ data }) {
                             movieDB = data.map(m => {
                                 const title = cleanTitle(m.Title);
-                                // Parse year from ISO date or bare year
+                                const diff  = difficultyMap[title] || {};
                                 let year = null;
-                                if (m['Release Date']) {
-                                    const match = m['Release Date'].match(/\d{4}/);
-                                    if (match) year = parseInt(match[0]);
-                                }
+                                const dateMatch = (m['Release Date'] || '').match(/\d{4}/);
+                                if (dateMatch) year = parseInt(dateMatch[0]);
                                 return {
-                                    Title:        title,
-                                    Genres:       (m.Genres || '').trim(),
-                                    Year:         year,
-                                    Studio:       (m.Studio || '').trim(),
-                                    CriticScore:  m['Critic Score'] ? parseInt(m['Critic Score']) || null : null,
-                                    AudienceScore:m['Audience Score'] && m['Audience Score'] !== 'N/A' ? parseInt(m['Audience Score']) || null : null,
-                                    Hint:         (m.Hint || '').trim(),
-                                    Description:  (m.Description || '').trim(),
-                                    Emojis:       (m['Vibe Emojis'] || '').trim(),
-                                    Difficulty:   difficultyMap[title] || 'Unknown',
+                                    Title:         title,
+                                    Genres:        (m.Genres          || '').trim(),
+                                    Year:          year,
+                                    Studio:        (m.Studio          || '').trim(),
+                                    CriticScore:   m['Critic Score']  ? (parseInt(m['Critic Score'])   || null) : null,
+                                    AudienceScore: m['Audience Score'] && m['Audience Score'] !== 'N/A' ? (parseInt(m['Audience Score']) || null) : null,
+                                    Hint:          (m.Hint            || '').trim(),
+                                    Description:   (m.Description     || '').trim(),
+                                    Emojis:        (m['Vibe Emojis']  || '').trim(),
+                                    Difficulty:    diff.Difficulty    || '',
+                                    Rating:        diff.Rating        || '',
+                                    Country:       diff.Country       || '',
+                                    Language:      diff.Language      || '',
                                 };
-                            }).filter(m => m.Title && m.Difficulty !== 'Unknown');
+                            }).filter(m => m.Title && m.Difficulty);
 
-                            if (movieDB.length > 0) {
-                                setTimeout(showDifficultySelect, 600);
-                            } else {
-                                statusEl.textContent = 'Error: database is empty after parsing.';
-                            }
+                            if (movieDB.length > 0) setTimeout(showDifficultySelect, 600);
+                            else statusEl.textContent = 'Error: database empty after parsing.';
                         }
                     });
                 }
             });
         } catch (err) {
             console.error(err);
-            statusEl.innerHTML = `<span class="text-red-500 font-bold">Failed to load: ${err.message}</span><br>
-                <span class="text-xs opacity-50">Ensure movies.csv and difficulty.csv are in the same folder as this file.</span>`;
+            statusEl.innerHTML = `<span class="text-red-500 font-bold">Failed: ${err.message}</span><br><span class="text-xs opacity-50">Ensure movies.csv and difficulty.csv are in the same folder.</span>`;
         }
     };
 
     // ── Views ──
     function showDifficultySelect() {
-        document.getElementById('setupView').classList.add('hidden');
-        document.getElementById('gameView').classList.add('hidden');
+        ['setupView','gameView'].forEach(id => document.getElementById(id).classList.add('hidden'));
         document.getElementById('gameOverModal').classList.add('hidden');
         document.getElementById('difficultyView').classList.remove('hidden');
     }
-
     function setDifficulty(diff) {
         currentDifficulty = diff;
         document.getElementById('difficultyView').classList.add('hidden');
         document.getElementById('gameView').classList.remove('hidden');
-
-        const labels = { 'Easy Mode': 'EASY', 'Hard Mode': 'HARD', 'Impossible Mode': 'IMPOSSIBLE' };
-        const classes = { 'Easy Mode': 'badge-easy', 'Hard Mode': 'badge-hard', 'Impossible Mode': 'badge-impossible' };
+        const labels  = {'Easy Mode':'EASY','Hard Mode':'HARD','Impossible Mode':'IMPOSSIBLE'};
+        const classes = {'Easy Mode':'badge-easy','Hard Mode':'badge-hard','Impossible Mode':'badge-impossible'};
         const el = document.getElementById('currentDiffName');
         el.textContent = labels[diff] || diff;
-        el.className = `text-[11px] font-black tracking-widest ${classes[diff] || ''}`;
-
+        el.className = `text-[11px] font-black tracking-widest ${classes[diff]||''}`;
         startNewGame();
     }
 
     // ── Streak ──
     function getStreak() { return parseInt(localStorage.getItem(`cinemadle_streak_${currentDifficulty}`)) || 0; }
-    function setStreak(v) {
-        localStorage.setItem(`cinemadle_streak_${currentDifficulty}`, v);
-        document.getElementById('streakCount').textContent = v;
-    }
+    function setStreak(v) { localStorage.setItem(`cinemadle_streak_${currentDifficulty}`, v); document.getElementById('streakCount').textContent = v; }
 
     // ── New game ──
     function startNewGame() {
-        guessesLeft = MAX_GUESSES;
-        revealCount = 1;
-        foundGenres = new Set();
-        yearBounds  = { min: null, max: null };
-        guessedTitles = new Set();
-        hintVibeUsed    = false;
-        hintContextUsed = false;
+        guessesLeft = MAX_GUESSES; revealCount = 1;
+        foundGenres = new Set(); yearBounds = { min: null, max: null };
+        guessedTitles = new Set(); hintVibeUsed = false; hintContextUsed = false;
 
         const pool = movieDB.filter(m => m.Difficulty === currentDifficulty);
         if (!pool.length) { showNotification('No movies for this difficulty!'); return; }
         targetMovie = pool[Math.floor(Math.random() * pool.length)];
-
         currentEmojis = Array.from(segmenter.segment(targetMovie.Emojis), s => s.segment);
 
-        // Reset UI
         document.getElementById('gameOverModal').classList.add('hidden');
         document.getElementById('summaryPanel').classList.add('hidden');
-        document.getElementById('genreSummary').innerHTML  = '';
-        document.getElementById('yearSummary').innerHTML   = '';
-        document.getElementById('studioSummary').innerHTML = '';
-        document.getElementById('scoreSummary').innerHTML  = '';
+        ['genreSummary','yearSummary','studioSummary','scoreSummary','ratingSummary','countrySummary'].forEach(id => {
+            document.getElementById(id).innerHTML = '';
+        });
         document.getElementById('guessHistory').innerHTML  = '';
         document.getElementById('movieInput').value        = '';
         document.getElementById('movieInput').disabled     = false;
@@ -467,74 +327,70 @@
         document.getElementById('btnVibe').disabled    = false;
         document.getElementById('btnContext').disabled = false;
         document.getElementById('streakCount').textContent = getStreak();
-
         updateUI();
     }
 
     // ── UI refresh ──
     function updateUI() {
         document.getElementById('guessesLeft').textContent = guessesLeft;
-
-        // Progress bar: consumed = MAX - remaining
-        const consumed = MAX_GUESSES - guessesLeft;
-        document.getElementById('progressFill').style.width = `${(consumed / MAX_GUESSES) * 100}%`;
-
-        // Emoji reveal
+        document.getElementById('progressFill').style.width = `${((MAX_GUESSES - guessesLeft) / MAX_GUESSES) * 100}%`;
         const visible = currentEmojis.slice(0, Math.min(revealCount, currentEmojis.length));
-        document.getElementById('emojiDisplay').innerHTML = visible.map(e => `<span>${e}</span>`).join('');
-
-        // Show hint section when 5 or fewer guesses remain
-        if (guessesLeft <= 5) {
-            document.getElementById('hintsContainer').classList.remove('hidden');
-        }
+        document.getElementById('emojiDisplay').innerHTML = makeEmojiHtml(visible);
+        if (guessesLeft <= 5) document.getElementById('hintsContainer').classList.remove('hidden');
     }
 
     // ── Summary panel ──
-    function updateGlobalSummaries(guessedMovie) {
+    function updateGlobalSummaries(guess) {
         document.getElementById('summaryPanel').classList.remove('hidden');
 
         // Genre
-        const targetGenres = (targetMovie.Genres || '').split(',').map(g => g.trim().toLowerCase());
-        (guessedMovie.Genres || '').split(',').map(g => g.trim().toLowerCase()).forEach(g => {
-            if (targetGenres.includes(g)) foundGenres.add(g);
+        const tGenres = (targetMovie.Genres || '').split(',').map(g => g.trim().toLowerCase());
+        (guess.Genres || '').split(',').map(g => g.trim().toLowerCase()).forEach(g => {
+            if (tGenres.includes(g)) foundGenres.add(g);
         });
-        if (foundGenres.size > 0) {
-            document.getElementById('genreSummary').innerHTML = Array.from(foundGenres)
-                .map(g => `<span class="summary-pill bg-green-500/10 text-green-400 border-green-500/20">${g}</span>`)
-                .join('');
-        }
+        if (foundGenres.size > 0)
+            document.getElementById('genreSummary').innerHTML = [...foundGenres]
+                .map(g => `<span class="summary-pill bg-green-500/10 text-green-400 border-green-500/20">${g}</span>`).join('');
 
         // Year bounds
-        if (guessedMovie.Year && targetMovie.Year) {
-            if      (guessedMovie.Year < targetMovie.Year) yearBounds.min = Math.max(yearBounds.min || 0, guessedMovie.Year);
-            else if (guessedMovie.Year > targetMovie.Year) yearBounds.max = Math.min(yearBounds.max || 9999, guessedMovie.Year);
+        if (guess.Year && targetMovie.Year) {
+            if      (guess.Year < targetMovie.Year) yearBounds.min = Math.max(yearBounds.min || 0, guess.Year);
+            else if (guess.Year > targetMovie.Year) yearBounds.max = Math.min(yearBounds.max || 9999, guess.Year);
             else { yearBounds.min = targetMovie.Year; yearBounds.max = targetMovie.Year; }
         }
-        if (yearBounds.min === yearBounds.max && yearBounds.min) {
-            document.getElementById('yearSummary').innerHTML =
-                `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Year}</span>`;
-        } else if (yearBounds.min || yearBounds.max) {
-            document.getElementById('yearSummary').innerHTML =
-                `<span class="summary-pill text-yellow-500">${yearBounds.min || '?'} – ${yearBounds.max || '?'}</span>`;
-        }
+        const yrEl = document.getElementById('yearSummary');
+        if (yearBounds.min === yearBounds.max && yearBounds.min)
+            yrEl.innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Year}</span>`;
+        else if (yearBounds.min || yearBounds.max)
+            yrEl.innerHTML = `<span class="summary-pill text-yellow-500">${yearBounds.min||'?'} – ${yearBounds.max||'?'}</span>`;
 
         // Studio
-        if (guessedMovie.Studio === targetMovie.Studio && targetMovie.Studio) {
-            document.getElementById('studioSummary').innerHTML =
-                `<span class="summary-pill bg-blue-500/20 text-blue-400">✓ ${targetMovie.Studio}</span>`;
+        if (guess.Studio && guess.Studio === targetMovie.Studio)
+            document.getElementById('studioSummary').innerHTML = `<span class="summary-pill bg-blue-500/20 text-blue-400">✓ ${targetMovie.Studio}</span>`;
+
+        // Critic score
+        if (guess.CriticScore !== null && targetMovie.CriticScore !== null) {
+            const d = Math.abs(guess.CriticScore - targetMovie.CriticScore);
+            if (d === 0)
+                document.getElementById('scoreSummary').innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.CriticScore}</span>`;
+            else if (d <= 5)
+                document.getElementById('scoreSummary').innerHTML = `<span class="summary-pill text-yellow-500">~${guess.CriticScore < targetMovie.CriticScore ? '↑' : '↓'}</span>`;
         }
 
-        // Critic Score
-        if (guessedMovie.CriticScore !== null && targetMovie.CriticScore !== null) {
-            const diff = Math.abs(guessedMovie.CriticScore - targetMovie.CriticScore);
-            if (diff === 0) {
-                document.getElementById('scoreSummary').innerHTML =
-                    `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.CriticScore}</span>`;
-            } else if (diff <= 5) {
-                const dir = guessedMovie.CriticScore < targetMovie.CriticScore ? '↑' : '↓';
-                document.getElementById('scoreSummary').innerHTML =
-                    `<span class="summary-pill text-yellow-500">~${dir}</span>`;
-            }
+        // MPA Rating — exact match only
+        if (guess.Rating && guess.Rating === targetMovie.Rating)
+            document.getElementById('ratingSummary').innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Rating}</span>`;
+
+        // Country — slash-separated, partial ok
+        if (guess.Country && targetMovie.Country) {
+            const tC = targetMovie.Country.split('/').map(c => c.trim().toLowerCase());
+            const gC = guess.Country.split('/').map(c => c.trim().toLowerCase());
+            const shared = gC.filter(c => tC.includes(c));
+            const cEl = document.getElementById('countrySummary');
+            if (shared.length >= tC.length)
+                cEl.innerHTML = `<span class="summary-pill bg-green-500/20 text-green-400">✓ ${targetMovie.Country}</span>`;
+            else if (shared.length > 0)
+                cEl.innerHTML = `<span class="summary-pill text-yellow-500">${shared.join(', ')} …</span>`;
         }
     }
 
@@ -542,27 +398,20 @@
     function revealHint(type) {
         if (type === 'vibe') {
             if (hintVibeUsed) return;
-            if (guessesLeft <= 1) { showNotification('Not enough guesses left!'); return; }
-            hintVibeUsed = true;
-            guessesLeft -= 1;
-            revealCount += 1;
+            if (guessesLeft <= 1) { showNotification('Not enough guesses!'); return; }
+            hintVibeUsed = true; guessesLeft -= 1; revealCount += 1;
             document.getElementById('hintText').innerHTML =
                 `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Vibe Hint</span>` +
                 (targetMovie.Hint || 'No hint available.');
             document.getElementById('btnVibe').disabled = true;
         } else {
             if (hintContextUsed) return;
-            if (guessesLeft <= 2) { showNotification('Not enough guesses left!'); return; }
-            hintContextUsed = true;
-            guessesLeft -= 2;
-            revealCount += 2;
+            if (guessesLeft <= 2) { showNotification('Not enough guesses!'); return; }
+            hintContextUsed = true; guessesLeft -= 2; revealCount += 2;
             const existing = document.getElementById('hintText').innerHTML;
-            const contextHtml =
-                `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Context Hint</span>` +
-                (targetMovie.Description || 'No description available.');
-            document.getElementById('hintText').innerHTML = existing
-                ? existing + `<hr class="border-white/10 my-4">` + contextHtml
-                : contextHtml;
+            const ctx = `<span class="text-yellow-500 font-black text-[10px] block mb-2 uppercase tracking-widest">Context Hint</span>` +
+                        (targetMovie.Description || 'No description available.');
+            document.getElementById('hintText').innerHTML = existing ? existing + '<hr class="border-white/10 my-4">' + ctx : ctx;
             document.getElementById('btnContext').disabled = true;
         }
         updateUI();
@@ -570,141 +419,117 @@
     }
 
     // ── Autocomplete ──
-    const input       = document.getElementById('movieInput');
+    const input = document.getElementById('movieInput');
     const resultsList = document.getElementById('autocompleteResults');
 
     input.addEventListener('input', e => {
-        const raw = e.target.value;
-        const val = normalizeString(raw);
+        const val = normalizeString(e.target.value);
         resultsList.innerHTML = '';
         if (!val) { resultsList.classList.add('hidden'); return; }
-
-        const filtered = movieDB
-            .filter(m => normalizeString(m.Title).includes(val))
-            .slice(0, 10);
-
+        const filtered = movieDB.filter(m => normalizeString(m.Title).includes(val)).slice(0, 10);
         if (filtered.length) {
             filtered.forEach(m => {
                 const div = document.createElement('div');
                 div.className = 'px-8 py-4 hover:bg-white/5 cursor-pointer border-b border-white/5 flex justify-between items-center group';
+                const ratingStr = m.Rating ? `<span class="ml-2 text-[9px] border border-white/20 rounded px-1 py-px font-black text-white/30">${m.Rating}</span>` : '';
                 div.innerHTML = `
                     <div class="truncate flex-1 pr-4">
-                        <p class="text-lg font-bold group-hover:text-yellow-500 transition-colors truncate">${m.Title}</p>
-                        <p class="text-[9px] text-white/30 uppercase font-black tracking-widest truncate">${m.Studio || 'Independent'}</p>
+                        <p class="text-lg font-bold group-hover:text-yellow-500 transition-colors truncate">${m.Title}${ratingStr}</p>
+                        <p class="text-[9px] text-white/30 uppercase font-black tracking-widest truncate">${m.Studio||'Independent'} · ${m.Country||''} · ${m.Language||''}</p>
                     </div>
-                    <span class="text-xs text-white/40 font-black shrink-0">${m.Year || ''}</span>`;
+                    <span class="text-xs text-white/40 font-black shrink-0">${m.Year||''}</span>`;
                 div.onclick = () => submitGuess(m);
                 resultsList.appendChild(div);
             });
             resultsList.classList.remove('hidden');
-        } else {
-            resultsList.classList.add('hidden');
-        }
+        } else resultsList.classList.add('hidden');
     });
+    document.addEventListener('click', e => { if (!input.contains(e.target)) resultsList.classList.add('hidden'); });
 
-    document.addEventListener('click', e => {
-        if (!input.contains(e.target)) resultsList.classList.add('hidden');
-    });
-
-    // ── Submit guess ──
+    // ── Submit ──
     function submitGuess(movie) {
-        const normTarget = normalizeString(targetMovie.Title);
-        const normGuess  = normalizeString(movie.Title);
-
-        if (guessedTitles.has(normGuess)) {
-            showNotification("You've already guessed this movie!");
-            return;
-        }
-
+        const normGuess = normalizeString(movie.Title);
+        if (guessedTitles.has(normGuess)) { showNotification("Already guessed!"); return; }
         guessedTitles.add(normGuess);
         resultsList.classList.add('hidden');
         input.value = '';
-
-        const isCorrect = normGuess === normTarget;
+        const isCorrect = normGuess === normalizeString(targetMovie.Title);
         addGuessRow(movie, isCorrect);
         updateGlobalSummaries(movie);
-
-        if (isCorrect) {
-            revealCount = currentEmojis.length;
-            updateUI();
-            endGame(true);
-        } else {
-            guessesLeft--;
-            revealCount++;
-            updateUI();
-            if (guessesLeft <= 0) endGame(false);
-        }
+        if (isCorrect) { revealCount = currentEmojis.length; updateUI(); endGame(true); }
+        else { guessesLeft--; revealCount++; updateUI(); if (guessesLeft <= 0) endGame(false); }
     }
 
-    // ── Guess row ──
+    // ── Guess row (7 columns) ──
     function addGuessRow(guess, isCorrect) {
-        const targetG  = (targetMovie.Genres || '').split(',').map(g => g.trim().toLowerCase());
-        const guessG   = (guess.Genres || '').split(',').map(g => g.trim().toLowerCase());
-        const shared   = guessG.filter(g => targetG.includes(g));
-        const yearDiff = Math.abs((guess.Year || 0) - (targetMovie.Year || 0));
-        const studioOk = guess.Studio === targetMovie.Studio && !!targetMovie.Studio;
+        const tG = (targetMovie.Genres||'').split(',').map(g=>g.trim().toLowerCase());
+        const gG = (guess.Genres||'').split(',').map(g=>g.trim().toLowerCase());
+        const sharedG = gG.filter(g => tG.includes(g));
+        const yearDiff = Math.abs((guess.Year||0)-(targetMovie.Year||0));
+        const studioOk = guess.Studio && guess.Studio === targetMovie.Studio;
+        const ratingOk = guess.Rating && guess.Rating === targetMovie.Rating;
 
-        // Critic Score comparison
-        let scoreCls  = 'status-wrong';
-        let scoreText = guess.CriticScore !== null ? `${guess.CriticScore}` : 'N/A';
+        const tC = (targetMovie.Country||'').split('/').map(c=>c.trim().toLowerCase());
+        const gC = (guess.Country||'').split('/').map(c=>c.trim().toLowerCase());
+        const sharedC = gC.filter(c => tC.includes(c));
+        const countryCls = sharedC.length >= tC.length && sharedC.length > 0 ? 'status-correct'
+                         : sharedC.length > 0 ? 'status-partial' : 'status-wrong';
+
+        let scoreCls = 'status-wrong', scoreText = guess.CriticScore !== null ? String(guess.CriticScore) : 'N/A';
         if (guess.CriticScore !== null && targetMovie.CriticScore !== null) {
-            const diff = Math.abs(guess.CriticScore - targetMovie.CriticScore);
-            if (diff === 0)     { scoreCls = 'status-correct'; }
-            else if (diff <= 5) { scoreCls = 'status-partial'; }
-            const dir = guess.CriticScore < targetMovie.CriticScore ? ' ↑' : (guess.CriticScore > targetMovie.CriticScore ? ' ↓' : '');
+            const d = Math.abs(guess.CriticScore - targetMovie.CriticScore);
+            scoreCls = d === 0 ? 'status-correct' : d <= 5 ? 'status-partial' : 'status-wrong';
+            const dir = guess.CriticScore < targetMovie.CriticScore ? ' ↑' : guess.CriticScore > targetMovie.CriticScore ? ' ↓' : '';
             scoreText = `${guess.CriticScore}${dir}`;
         }
-
-        const yearDir = guess.Year < targetMovie.Year ? ' ↑' : (guess.Year > targetMovie.Year ? ' ↓' : '');
+        const yearDir = guess.Year && targetMovie.Year ? (guess.Year < targetMovie.Year ? ' ↑' : guess.Year > targetMovie.Year ? ' ↓' : '') : '';
+        const countryDisplay = (guess.Country||'N/A').split('/')[0].trim();
 
         const row = document.createElement('div');
         row.className = 'guess-row w-full';
-        row.innerHTML = `
-            <div class="feedback-grid">
-                <div class="feedback-box ${isCorrect ? 'status-correct' : 'status-wrong'}">
-                    <span class="box-label">Title</span>
-                    <span class="box-value text-[11px]">${guess.Title}</span>
-                </div>
-                <div class="feedback-box ${shared.length >= targetG.length && shared.length > 0 ? 'status-correct' : shared.length > 0 ? 'status-partial' : 'status-wrong'}">
-                    <span class="box-label">Genre</span>
-                    <span class="box-value text-[10px]">${guess.Genres || 'N/A'}</span>
-                </div>
-                <div class="feedback-box ${yearDiff === 0 ? 'status-correct' : yearDiff <= 3 ? 'status-partial' : 'status-wrong'}">
-                    <span class="box-label">Year</span>
-                    <span class="box-value">${guess.Year ? guess.Year + yearDir : '???'}</span>
-                </div>
-                <div class="feedback-box ${studioOk ? 'status-correct' : 'status-wrong'}">
-                    <span class="box-label">Studio</span>
-                    <span class="box-value text-[10px]">${guess.Studio || 'N/A'}</span>
-                </div>
-                <div class="feedback-box ${scoreCls}">
-                    <span class="box-label">Critic %</span>
-                    <span class="box-value">${scoreText}</span>
-                </div>
-            </div>`;
+        row.innerHTML = `<div class="feedback-grid">
+            <div class="feedback-box ${isCorrect?'status-correct':'status-wrong'}">
+                <span class="box-label">Title</span><span class="box-value">${guess.Title}</span>
+            </div>
+            <div class="feedback-box ${sharedG.length>0&&sharedG.length>=tG.length?'status-correct':sharedG.length>0?'status-partial':'status-wrong'}">
+                <span class="box-label">Genre</span><span class="box-value box-value-wrap">${guess.Genres||'N/A'}</span>
+            </div>
+            <div class="feedback-box ${yearDiff===0?'status-correct':yearDiff<=3?'status-partial':'status-wrong'}">
+                <span class="box-label">Year</span><span class="box-value">${guess.Year?guess.Year+yearDir:'???'}</span>
+            </div>
+            <div class="feedback-box ${studioOk?'status-correct':'status-wrong'}">
+                <span class="box-label">Studio</span><span class="box-value">${guess.Studio||'N/A'}</span>
+            </div>
+            <div class="feedback-box ${scoreCls}">
+                <span class="box-label">Critic %</span><span class="box-value">${scoreText}</span>
+            </div>
+            <div class="feedback-box ${ratingOk?'status-correct':'status-wrong'}">
+                <span class="box-label">Rating</span><span class="box-value">${guess.Rating||'N/A'}</span>
+            </div>
+            <div class="feedback-box ${countryCls}">
+                <span class="box-label">Country</span><span class="box-value">${countryDisplay}</span>
+            </div>
+        </div>`;
         document.getElementById('guessHistory').prepend(row);
     }
 
     // ── End game ──
     function endGame(won) {
         input.disabled = true;
-
-        if (won) {
-            setStreak(getStreak() + 1);
-        } else {
-            setStreak(0);
-        }
-
+        setStreak(won ? getStreak() + 1 : 0);
         document.getElementById('modalTitle').textContent = won ? "CRITIC'S CHOICE" : 'BOX OFFICE BOMB';
-        document.getElementById('modalTitle').className   = won
+        document.getElementById('modalTitle').className = won
             ? 'text-5xl font-black italic tracking-tighter text-green-500'
             : 'text-5xl font-black italic tracking-tighter text-red-500';
         document.getElementById('targetMovieTitle').textContent = targetMovie.Title;
-
-        const scoreStr = targetMovie.CriticScore !== null ? `${targetMovie.CriticScore}% critic` : '';
-        document.getElementById('targetMovieMeta').textContent =
-            [targetMovie.Year, targetMovie.Genres, targetMovie.Studio, scoreStr].filter(Boolean).join(' • ');
-
+        const meta = [
+            targetMovie.Year, targetMovie.Genres, targetMovie.Studio,
+            targetMovie.Rating, targetMovie.Country, targetMovie.Language,
+            targetMovie.CriticScore !== null ? `${targetMovie.CriticScore}% critic` : null
+        ].filter(Boolean).join(' • ');
+        document.getElementById('targetMovieMeta').textContent = meta;
+        // Full emoji reveal with tooltips in modal
+        document.getElementById('modalEmojis').innerHTML = makeEmojiHtml(currentEmojis);
         setTimeout(() => document.getElementById('gameOverModal').classList.remove('hidden'), 600);
     }
 </script>

@@ -1038,7 +1038,7 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
             if (guessesLeft <= 1) { showToast('Not enough guesses!'); return; }
             hintVibeUsed = true; guessesLeft--; revealCount++;
             document.getElementById('hintText').innerHTML =
-                `<span class="not-italic pill-yellow font-black text-xs block mb-2 uppercase tracking-widest">Vibe Hint</span>` +
+                `<span style="display:block;font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:6px">Vibe Hint</span>` +
                 (targetMovie.Hint || 'No hint available.');
             document.getElementById('btnVibe').disabled = true;
         } else {
@@ -1046,9 +1046,9 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
             if (guessesLeft <= 2) { showToast('Not enough guesses!'); return; }
             hintContextUsed = true; guessesLeft -= 2; revealCount += 2;
             const ex = document.getElementById('hintText').innerHTML;
-            const ctx = `<span class="not-italic pill-yellow font-black text-xs block mb-2 uppercase tracking-widest">Context Hint</span>` +
+            const ctx = `<span style="display:block;font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:6px">Context Hint</span>` +
                         (targetMovie.Description || 'No description available.');
-            document.getElementById('hintText').innerHTML = ex ? ex + '<hr class="border-white/10 my-4">' + ctx : ctx;
+            document.getElementById('hintText').innerHTML = ex ? ex + `<hr style="border-color:var(--border);margin:1rem 0">` + ctx : ctx;
             document.getElementById('btnContext').disabled = true;
         }
         updateUI();
@@ -1057,18 +1057,23 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
     }
 
     function restoreHintDisplay() {
+        // Always re-enable both first (they start disabled in HTML)
+        document.getElementById('btnVibe').disabled    = false;
+        document.getElementById('btnContext').disabled = false;
+
         if (!hintVibeUsed && !hintContextUsed) return;
         document.getElementById('hintsContainer').classList.remove('hidden');
+        const labelStyle = 'display:block;font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:6px';
         let html = '';
         if (hintVibeUsed) {
-            html += `<span class="not-italic pill-yellow font-black text-xs block mb-2 uppercase tracking-widest">Vibe Hint</span>` +
+            html += `<span style="${labelStyle}">Vibe Hint</span>` +
                     (targetMovie.Hint || 'No hint available.');
             document.getElementById('btnVibe').disabled = true;
         }
         if (hintContextUsed) {
-            const ctx = `<span class="not-italic pill-yellow font-black text-xs block mb-2 uppercase tracking-widest">Context Hint</span>` +
+            const ctx = `<span style="${labelStyle}">Context Hint</span>` +
                         (targetMovie.Description || 'No description available.');
-            html = html ? html + '<hr class="border-white/10 my-4">' + ctx : ctx;
+            html = html ? html + `<hr style="border-color:var(--border);margin:1rem 0">` + ctx : ctx;
             document.getElementById('btnContext').disabled = true;
         }
         document.getElementById('hintText').innerHTML = html;

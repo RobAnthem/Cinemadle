@@ -253,6 +253,93 @@
             50%      { border-color: rgba(234,179,8,0.4); }
         }
 
+        /* ── Cell flip-in ── */
+        @keyframes cellFlip {
+            0%   { transform: perspective(500px) rotateX(90deg) scale(0.9); opacity: 0; }
+            60%  { transform: perspective(500px) rotateX(-8deg) scale(1.02); opacity: 1; }
+            100% { transform: perspective(500px) rotateX(0deg) scale(1); opacity: 1; }
+        }
+        .cell-flip { animation: cellFlip 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+        /* ── Correct row glow ── */
+        @keyframes correctGlow {
+            0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+            40%  { box-shadow: 0 0 0 8px rgba(34,197,94,0.4); }
+            100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+        }
+        .correct-glow .feedback-box.status-correct { animation: correctGlow 1.1s ease forwards; }
+
+        /* ── Wrong row shake ── */
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            15%     { transform: translateX(-7px); }
+            30%     { transform: translateX(7px); }
+            45%     { transform: translateX(-5px); }
+            60%     { transform: translateX(5px); }
+            75%     { transform: translateX(-3px); }
+        }
+        .shake { animation: shake 0.45s ease; }
+
+        /* ── Emoji pop ── */
+        @keyframes emojiPop {
+            0%   { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+            60%  { transform: scale(1.25) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .emoji-pop { display: inline-flex; animation: emojiPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+        /* ── Streak badge glow ── */
+        @keyframes streakGlow {
+            0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.0); }
+            50%     { box-shadow: 0 0 16px 5px rgba(34,197,94,0.3); }
+        }
+        .streak-hot { animation: streakGlow 2.2s ease-in-out infinite; }
+
+        /* ── Streak bump ── */
+        @keyframes streakBump {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(1.45); }
+            70%  { transform: scale(0.88); }
+            100% { transform: scale(1); }
+        }
+        .streak-bump { animation: streakBump 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+
+        /* ── Modal slide up ── */
+        @keyframes modalIn {
+            from { opacity:0; transform:translateY(32px) scale(0.96); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .modal-animate { animation: modalIn 0.45s cubic-bezier(0.23,1,0.32,1) both; }
+
+        /* ── Confetti ── */
+        .confetti-piece {
+            position: fixed; width: 9px; height: 9px; top: -12px;
+            pointer-events: none; z-index: 9999; border-radius: 2px;
+            animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+            85%  { opacity: 1; }
+            100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ── Year warmth tints ── */
+        .year-warm  { background: rgba(234,88,12,0.12)  !important; border-color: rgba(234,88,12,0.35)  !important; }
+        .year-warm  .box-value, .year-warm  .box-dir, .year-warm  .box-label { color: #f97316 !important; opacity:1; }
+        .year-close { background: rgba(234,179,8,0.12) !important; border-color: rgba(234,179,8,0.3)   !important; }
+        .year-close .box-value, .year-close .box-dir, .year-close .box-label { color: #eab308 !important; opacity:1; }
+
+        /* ── Share button ── */
+        #shareBtn {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--surface); border: 1.5px solid var(--border);
+            color: var(--text-secondary); padding: 10px 20px;
+            border-radius: 0.875rem; font-size: 0.85rem; font-weight: 800;
+            cursor: pointer; transition: all 0.15s;
+        }
+        #shareBtn:hover { background: var(--surface-hover); color: var(--text-primary); }
+        #shareBtn.copied { border-color: rgba(34,197,94,0.5); color: #22c55e; }
+
         /* ─────────────────────────────────────────────
            PROGRESS BAR
            ───────────────────────────────────────────── */
@@ -660,7 +747,7 @@
 
 <!-- ── Game-over modal ── -->
 <div id="gameOverModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden p-6">
-    <div class="glass-card max-w-lg w-full p-9 text-center space-y-7" style="border-color:var(--border-strong)">
+    <div class="glass-card max-w-lg w-full p-9 text-center space-y-7 modal-animate" style="border-color:var(--border-strong)">
         <h2 id="modalTitle" class="text-5xl font-black italic tracking-tighter">RESULT</h2>
         <div class="space-y-3">
             <p class="section-label">The Movie Was</p>
@@ -671,6 +758,7 @@
             <p id="modalGuessCount" class="text-sm font-black uppercase tracking-widest" style="color:var(--text-muted)"></p>
         </div>
         <div class="flex flex-col gap-3">
+            <button id="shareBtn" onclick="shareResult()">📋 Share Result</button>
             <button onclick="nextLevel()" class="btn-primary w-full py-4 text-lg">Next Movie</button>
             <button onclick="showDifficultySelect()" class="btn-secondary w-full py-3 text-sm uppercase tracking-widest">Change Difficulty</button>
         </div>
@@ -702,11 +790,14 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         const first = [...g][0];
         return EMOJI_NAMES[first] || null;
     }
-    function makeEmojiHtml(emojis) {
-        return emojis.map(e => {
+    let _lastEmojiCount = 0;
+    function makeEmojiHtml(emojis, animateNew = false) {
+        return emojis.map((e, i) => {
             const n = emojiName(e);
-            return n ? `<span class="emoji-wrap">${e}<span class="emoji-tip">${n}</span></span>`
-                     : `<span class="emoji-wrap">${e}</span>`;
+            const isNew = animateNew && i >= _lastEmojiCount;
+            const popCls = isNew ? ' emoji-pop' : '';
+            const inner = n ? `${e}<span class="emoji-tip">${n}</span>` : e;
+            return `<span class="emoji-wrap${popCls}" style="${isNew ? `animation-delay:${(i - _lastEmojiCount) * 80}ms` : ''}">${inner}</span>`;
         }).join('');
     }
 
@@ -807,7 +898,20 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
 
     // ── Streak ──
     function getStreak() { return parseInt(localStorage.getItem(`cinemadle_streak_${currentDifficulty}`)) || 0; }
-    function setStreak(v) { localStorage.setItem(`cinemadle_streak_${currentDifficulty}`, v); document.getElementById('streakCount').textContent = v; }
+    function setStreak(v, animate = false) {
+        localStorage.setItem(`cinemadle_streak_${currentDifficulty}`, v);
+        const el = document.getElementById('streakCount');
+        el.textContent = v;
+        if (animate && v > 0) {
+            el.classList.remove('streak-bump');
+            void el.offsetWidth; // reflow
+            el.classList.add('streak-bump');
+            el.addEventListener('animationend', () => el.classList.remove('streak-bump'), { once: true });
+        }
+        // Glow the streak card if streak >= 3
+        const card = el.closest('.glass-card');
+        if (card) card.classList.toggle('streak-hot', v >= 3);
+    }
 
     // ── Session ──
     const SESSION_KEY = 'cinemadle_session_v1';
@@ -906,8 +1010,16 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         document.getElementById('progressFill').style.width = `${(used / MAX_GUESSES) * 100}%`;
         document.getElementById('progressLabel').textContent = `${used} / ${MAX_GUESSES}`;
 
-        const visible = currentEmojis.slice(0, Math.min(revealCount, currentEmojis.length));
-        document.getElementById('emojiDisplay').innerHTML = makeEmojiHtml(visible);
+        const visibleCount = Math.min(revealCount, currentEmojis.length);
+        const visible = currentEmojis.slice(0, visibleCount);
+        document.getElementById('emojiDisplay').innerHTML = makeEmojiHtml(visible, true);
+        _lastEmojiCount = visibleCount;
+
+        // Progress bar colour: green → yellow → red as guesses run out
+        const fill = document.getElementById('progressFill');
+        if (guessesLeft <= 2)      fill.style.background = 'linear-gradient(90deg,#dc2626,#ef4444)';
+        else if (guessesLeft <= 4) fill.style.background = 'linear-gradient(90deg,#ea580c,#f97316)';
+        else                       fill.style.background = 'linear-gradient(90deg,#eab308,#f97316)';
 
         if (guessesLeft <= HINTS_UNLOCK_AT) {
             document.getElementById('hintsContainer').classList.remove('hidden');
@@ -1167,6 +1279,70 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
             resultsList.classList.add('hidden');
     });
 
+    // ── Confetti ──
+    function launchConfetti() {
+        const colors = ['#eab308','#f97316','#22c55e','#3b82f6','#a855f7','#ec4899','#ef4444','#fff'];
+        for (let i = 0; i < 120; i++) {
+            const el = document.createElement('div');
+            el.className = 'confetti-piece';
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.background = colors[Math.floor(Math.random() * colors.length)];
+            el.style.width  = (6 + Math.random() * 7) + 'px';
+            el.style.height = (6 + Math.random() * 12) + 'px';
+            el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            el.style.animationDuration = (1.4 + Math.random() * 2.2) + 's';
+            el.style.animationDelay = (Math.random() * 0.7) + 's';
+            document.body.appendChild(el);
+            el.addEventListener('animationend', () => el.remove());
+        }
+    }
+
+    // ── Share result ──
+    function shareResult() {
+        const won = guessedTitles.size > 0 &&
+            normalizeString([...guessedTitles].at(-1)) === normalizeString(targetMovie.Title);
+        const guessCount = MAX_GUESSES - guessesLeft;
+        const tG = (targetMovie.Genres||'').split(',').map(g=>g.trim().toLowerCase());
+        const tC = (targetMovie.Country||'').split('/').map(c=>c.trim().toLowerCase());
+
+        const rows = [...guessedTitles].map(norm => {
+            const g = movieDB.find(m => normalizeString(m.Title) === norm);
+            if (!g) return '?????';
+            const gG = (g.Genres||'').split(',').map(x=>x.trim().toLowerCase());
+            const sharedG = gG.filter(x=>tG.includes(x));
+            const gC = (g.Country||'').split('/').map(x=>x.trim().toLowerCase());
+            const sharedC = gC.filter(x=>tC.includes(x));
+            const yearDiff = Math.abs((g.Year||0)-(targetMovie.Year||0));
+            const studioOk = g.Studio === targetMovie.Studio;
+            const ratingOk = g.Rating === targetMovie.Rating;
+            let scoreSq = '🟥';
+            if (g.CriticScore!==null && targetMovie.CriticScore!==null) {
+                const d = Math.abs(g.CriticScore - targetMovie.CriticScore);
+                scoreSq = d===0?'🟩':d<=5?'🟨':'🟥';
+            }
+            return [
+                normalizeString(g.Title)===normalizeString(targetMovie.Title) ? '🟩' : '🟥',
+                sharedG.length>=tG.length&&sharedG.length>0?'🟩':sharedG.length>0?'🟨':'🟥',
+                yearDiff===0?'🟩':yearDiff<=3?'🟨':'🟥',
+                studioOk?'🟩':'🟥',
+                scoreSq,
+                ratingOk?'🟩':'🟥',
+                sharedC.length>=tC.length&&sharedC.length>0?'🟩':sharedC.length>0?'🟨':'🟥',
+            ].join('');
+        });
+
+        const emojiPreview = currentEmojis.slice(0,5).join('');
+        const result = won ? `${guessCount}/${MAX_GUESSES}` : 'X/10';
+        const text = `🎬 Cinemadle ${result}\n${emojiPreview}\n\n${rows.join('\n')}\n\nTitle · Genre · Year · Studio · Critic% · Rating · Country`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('shareBtn');
+            btn.textContent = '✓ Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => { btn.innerHTML = '📋 Share Result'; btn.classList.remove('copied'); }, 2000);
+        }).catch(() => showToast('Could not copy to clipboard', 'error'));
+    }
+
     // ── Submit ──
     function submitGuess(movie) {
         const normGuess = normalizeString(movie.Title);
@@ -1176,18 +1352,24 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         input.value = '';
         kbdIdx = -1;
         const isCorrect = normGuess === normalizeString(targetMovie.Title);
-        addGuessRow(movie, isCorrect, true);
+        const rowEl = addGuessRow(movie, isCorrect, true);
         updateGlobalSummaries(movie);
         if (isCorrect) {
             revealCount = currentEmojis.length;
             updateUI();
+            // Glow + confetti
+            setTimeout(() => rowEl && rowEl.classList.add('correct-glow'), 50);
+            setTimeout(() => launchConfetti(), 300);
             endGame(true);
         } else {
             guessesLeft--;
             revealCount++;
             updateUI();
+            // Shake the row briefly
+            setTimeout(() => rowEl && rowEl.classList.add('shake'), 10);
+            setTimeout(() => rowEl && rowEl.classList.remove('shake'), 500);
             if (guessesLeft <= 0) endGame(false);
-            else saveSession();
+            else { saveSession(); setTimeout(() => input.focus(), 50); }
         }
     }
 
@@ -1214,51 +1396,60 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         const countryDisplay = (guess.Country||'N/A').split('/')[0].trim();
         const guessNum = guessedTitles.size;
 
+        // Year warmth class — only when wrong
+        let yearCls = yearDiff===0 ? 'status-correct' : yearDiff<=3 ? 'status-partial' : 'status-wrong';
+        if (yearCls === 'status-wrong') {
+            if (yearDiff <= 10) yearCls += ' year-close';
+            else if (yearDiff <= 20) yearCls += ' year-warm';
+        }
+
+        const cells = [
+            { cls: isCorrect?'status-correct':'status-wrong',                                            label:'Title',    val:`<span class="box-value" style="font-size:0.78rem">${guess.Title}</span>` },
+            { cls: sharedG.length>=tG.length&&sharedG.length>0?'status-correct':sharedG.length>0?'status-partial':'status-wrong', label:'Genre',    val:`<span class="box-value box-value-wrap">${guess.Genres||'N/A'}</span>` },
+            { cls: yearCls,                                                                               label:'Year',     val:`<span class="box-value">${guess.Year||'???'}</span>${yearDir?`<span class="box-dir">${yearDir}</span>`:''}` },
+            { cls: studioOk?'status-correct':'status-wrong',                                             label:'Studio',   val:`<span class="box-value box-value-wrap">${guess.Studio||'N/A'}</span>` },
+            { cls: scoreCls,                                                                              label:'Critic %', val:`<span class="box-value">${scoreVal}</span>${scoreDir?`<span class="box-dir">${scoreDir}</span>`:''}` },
+            { cls: ratingOk?'status-correct':'status-wrong',                                             label:'Rating',   val:`<span class="box-value">${guess.Rating||'N/A'}</span>` },
+            { cls: countryCls,                                                                            label:'Country',  val:`<span class="box-value">${countryDisplay}</span>` },
+        ];
+
+        const grid = document.createElement('div');
+        grid.className = 'feedback-grid';
+
+        cells.forEach((cell, i) => {
+            const box = document.createElement('div');
+            box.className = `feedback-box ${cell.cls}`;
+            box.innerHTML = `<span class="box-label">${cell.label}</span>${cell.val}`;
+            if (animate) {
+                box.classList.add('cell-flip');
+                box.style.animationDelay = `${i * 60}ms`;
+            }
+            grid.appendChild(box);
+        });
+
         const row = document.createElement('div');
-        row.className = animate ? 'guess-row w-full' : 'w-full';
-        row.innerHTML = `
-            <div class="guess-num">#${guessNum}</div>
-            <div class="feedback-grid">
-                <div class="feedback-box ${isCorrect?'status-correct':'status-wrong'}">
-                    <span class="box-label">Title</span>
-                    <span class="box-value text-sm">${guess.Title}</span>
-                </div>
-                <div class="feedback-box ${sharedG.length>0&&sharedG.length>=tG.length?'status-correct':sharedG.length>0?'status-partial':'status-wrong'}">
-                    <span class="box-label">Genre</span>
-                    <span class="box-value box-value-wrap">${guess.Genres||'N/A'}</span>
-                </div>
-                <div class="feedback-box ${yearDiff===0?'status-correct':yearDiff<=3?'status-partial':'status-wrong'}">
-                    <span class="box-label">Year</span>
-                    <span class="box-value">${guess.Year||'???'}</span>
-                    ${yearDir ? `<span class="box-dir">${yearDir}</span>` : ''}
-                </div>
-                <div class="feedback-box ${studioOk?'status-correct':'status-wrong'}">
-                    <span class="box-label">Studio</span>
-                    <span class="box-value box-value-wrap">${guess.Studio||'N/A'}</span>
-                </div>
-                <div class="feedback-box ${scoreCls}">
-                    <span class="box-label">Critic %</span>
-                    <span class="box-value">${scoreVal}</span>
-                    ${scoreDir ? `<span class="box-dir">${scoreDir}</span>` : ''}
-                </div>
-                <div class="feedback-box ${ratingOk?'status-correct':'status-wrong'}">
-                    <span class="box-label">Rating</span>
-                    <span class="box-value">${guess.Rating||'N/A'}</span>
-                </div>
-                <div class="feedback-box ${countryCls}">
-                    <span class="box-label">Country</span>
-                    <span class="box-value">${countryDisplay}</span>
-                </div>
-            </div>`;
+        row.className = 'w-full';
+        const numDiv = document.createElement('div');
+        numDiv.className = 'guess-num';
+        numDiv.textContent = '#' + guessNum;
+        row.appendChild(numDiv);
+        row.appendChild(grid);
         document.getElementById('guessHistory').prepend(row);
+        return row;
     }
 
     // ── End game ──
     function endGame(won, skipSave = false) {
         input.disabled = true;
         if (!skipSave) {
-            setStreak(won ? getStreak() + 1 : 0);
+            setStreak(won ? getStreak() + 1 : 0, won);
             saveSession();
+        } else {
+            // On restore, just apply glow state without animating
+            const streakEl = document.getElementById('streakCount');
+            const v = parseInt(streakEl.textContent) || 0;
+            const card = streakEl.closest('.glass-card');
+            if (card) card.classList.toggle('streak-hot', v >= 3);
         }
         document.getElementById('modalTitle').textContent = won ? "CRITIC'S CHOICE" : 'BOX OFFICE BOMB';
         document.getElementById('modalTitle').className   = won
@@ -1273,8 +1464,9 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         document.getElementById('modalEmojis').innerHTML = makeEmojiHtml(currentEmojis);
         const guessCount = MAX_GUESSES - guessesLeft;
         document.getElementById('modalGuessCount').textContent =
-            won ? `Solved in ${guessCount} guess${guessCount===1?'':'es'}` : `Guesses used: ${guessCount} / ${MAX_GUESSES}`;
-        setTimeout(() => document.getElementById('gameOverModal').classList.remove('hidden'), skipSave ? 0 : 700);
+            won ? `Solved in ${guessCount} guess${guessCount===1?'':'es'}` : `Better luck next time · ${guessCount}/${MAX_GUESSES} guesses`;
+        const delay = skipSave ? 0 : 700;
+        setTimeout(() => document.getElementById('gameOverModal').classList.remove('hidden'), delay);
     }
 
     function nextLevel() { clearSession(); startNewGame(); }

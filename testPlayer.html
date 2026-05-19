@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <!-- Page-level policy to guarantee correct referrer sharing across origins -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenTube - Focus & Ambient Workspace</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Inter & Fira Code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tone.js for high-quality synthesised ambient noise generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono-custom {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar for dashboard aesthetic */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        /* Glassmorphism utility helpers */
+        .glass-panel {
+            background: rgba(15, 15, 25, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        /* Neon/Synthwave Glowing Accents */
+        .glow-accent {
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+        /* Theme styles */
+        .theme-cyberpunk {
+            --primary: #ec4899; /* Pink */
+            --secondary: #06b6d4; /* Cyan */
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            --accent-glow: rgba(236, 72, 153, 0.4);
+        }
+        .theme-synthwave {
+            --primary: #8b5cf6; /* Purple */
+            --secondary: #f43f5e; /* Rose */
+            --bg-gradient: linear-gradient(135deg, #03001e 0%, #7303c0 50%, #ec38bc 100%);
+            --accent-glow: rgba(139, 92, 246, 0.4);
+        }
+        .theme-forest {
+            --primary: #10b981; /* Emerald */
+            --secondary: #84cc16; /* Lime */
+            --bg-gradient: linear-gradient(135deg, #022c22 0%, #064e3b 50%, #115e59 100%);
+            --accent-glow: rgba(16, 185, 129, 0.4);
+        }
+        .theme-nord {
+            --primary: #3b82f6; /* Blue */
+            --secondary: #14b8a6; /* Teal */
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%);
+            --accent-glow: rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body class="theme-synthwave min-h-screen text-slate-100 transition-colors duration-700 ease-in-out" style="background: var(--bg-gradient)">
+
+    <header class="glass-panel sticky top-0 z-50 px-6 py-4 border-b border-white/5 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 to-pink-500 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                <i data-lucide="youtube" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight glow-accent flex items-center gap-2">
+                    ZenTube <span class="text-xs font-semibold px-2 py-0.5 bg-white/10 rounded-full text-violet-300">v1.5</span>
+                </h1>
+                <p class="text-xs text-slate-400">Your immersive YouTube Focus & Chill Space</p>
+            </div>
+        </div>
+
+        <!-- Custom Toast Notification Box -->
+        <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 border border-violet-500/30 text-white rounded-xl shadow-2xl transition-all duration-300">
+            <i data-lucide="info" class="w-5 h-5 text-violet-400"></i>
+            <span id="toast-msg" class="text-sm"></span>
+        </div>
+
+        <!-- Quick Controls (Themes) -->
+        <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-400 flex items-center gap-1">
+                <i data-lucide="palette" class="w-4.5 h-4.5"></i> Space Theme:
+            </span>
+            <div class="flex bg-black/40 p-1 rounded-xl border border-white/5 space-x-1">
+                <button onclick="switchTheme('theme-synthwave')" class="px-3 py-1 text-xs rounded-lg transition font-medium focus:outline-none bg-violet-600/20 text-violet-300 border border-violet-500/30" id="btn-theme-synthwave">Synthwave</button>
+                <button onclick="switchTheme('theme-cyberpunk')" class="px-3 py-1 text-xs rounded-lg transition font-medium focus:outline-none text-slate-400 hover:text-white" id="btn-theme-cyberpunk">Cyberpunk</button>
+                <button onclick="switchTheme('theme-forest')" class="px-3 py-1 text-xs rounded-lg transition font-medium focus:outline-none text-slate-400 hover:text-white" id="btn-theme-forest">Forest</button>
+                <button onclick="switchTheme('theme-nord')" class="px-3 py-1 text-xs rounded-lg transition font-medium focus:outline-none text-slate-400 hover:text-white" id="btn-theme-nord">Deep Space</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Content Area (Main Player, Video Loader, Workspace Tools) -->
+        <section class="lg:col-span-8 space-y-6 flex flex-col">
+            
+            <!-- Video Loader (Input Box) -->
+            <div class="glass-panel rounded-2xl p-4 md:p-6 flex flex-col gap-4 shadow-xl">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                        <i data-lucide="link-2" class="w-4 h-4 text-violet-400"></i>
+                        Stream/Load Custom YouTube Link
+                    </h2>
+                    <span class="text-xs text-slate-400 hidden sm:inline">Supports standard, embed, shorts & mobile URLs</span>
+                </div>
+                
+                <form id="url-loader-form" class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-grow">
+                        <input type="text" id="yt-url-input" 
+                               placeholder="Paste YouTube URL here (e.g., https://www.youtube.com/watch?v=6hB3S9bIaco)" 
+                               class="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-3 pl-10 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 transition text-slate-100 placeholder-slate-500">
+                        <i data-lucide="search" class="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500"></i>
+                    </div>
+                    <button type="submit" class="bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-medium text-sm px-6 py-3 rounded-xl transition duration-150 shadow-md shadow-violet-900/40 flex items-center justify-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4"></i> Play Video
+                    </button>
+                </form>
+            </div>
+
+            <!-- Player & Visualizer Workspace Widget -->
+            <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex flex-col relative">
+                <!-- Glowing effect border top -->
+                <div class="h-1 w-full bg-gradient-to-r from-violet-500 via-pink-500 to-cyan-500"></div>
+                
+                <!-- Player Mode Selection Bar -->
+                <div class="px-4 py-2 bg-black/50 border-b border-white/5 flex justify-between items-center gap-2">
+                    <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
+                        <i data-lucide="monitor-play" class="w-3.5 h-3.5 text-violet-400"></i> Active Screen
+                    </span>
+                    <div class="flex bg-slate-950/60 p-0.5 rounded-lg border border-white/5">
+                        <button onclick="setPlayerMode('youtube')" id="btn-mode-youtube" class="px-2.5 py-1 text-[11px] rounded-md font-medium transition focus:outline-none bg-violet-600/30 text-violet-300 border border-violet-500/30">
+                            YouTube Player
+                        </button>
+                        <button onclick="setPlayerMode('visualizer')" id="btn-mode-visualizer" class="px-2.5 py-1 text-[11px] rounded-md font-medium transition focus:outline-none text-slate-400 hover:text-slate-200">
+                            Ambient Visualizer (Alternative)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fluid Aspect-Ratio Video / Visualizer Container -->
+                <div class="relative w-full aspect-video bg-black flex items-center justify-center">
+                    
+                    <!-- Clean YouTube-NoCookie Frame with recommended "strict-origin-when-cross-origin" policy -->
+                    <iframe id="main-embed-player" 
+                            src="https://www.youtube-nocookie.com/embed/6hB3S9bIaco" 
+                            title="YouTube video player"
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen 
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            class="absolute top-0 left-0 w-full h-full border-0">
+                    </iframe>
+
+                    <!-- Generative HTML5 Interactive Starfield Canvas (Absolute fallback for sandbox-blocked frames) -->
+                    <canvas id="ambient-visualizer" class="absolute top-0 left-0 w-full h-full hidden cursor-pointer"></canvas>
+                </div>
+
+                <!-- Active Video Details Panel -->
+                <div class="p-4 md:p-5 bg-black/40 border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
+                    <div class="space-y-1 max-w-[50%]">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-block w-2.5 h-2.5 bg-green-500 rounded-full animate-ping"></span>
+                            <span class="text-xs text-green-400 font-semibold tracking-wide uppercase">Now Streaming</span>
+                        </div>
+                        <h3 id="current-video-title" class="text-base md:text-lg font-bold text-slate-100 truncate">Lofi Hip Hop Radio / Synthwave Chill Beats</h3>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <!-- Direct External Window Access -->
+                        <a id="external-video-link" href="https://youtube.com/watch?v=6hB3S9bIaco" target="_blank" class="bg-red-600/20 hover:bg-red-600/30 text-red-200 border border-red-500/20 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition" title="Watch on original YouTube platform">
+                            <i data-lucide="external-link" class="w-4 h-4 text-red-400"></i> Open on YouTube
+                        </a>
+                        <button onclick="saveCurrentToPlaylist()" class="bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i data-lucide="bookmark-plus" class="w-4 h-4 text-violet-400"></i> Save to Playlist
+                        </button>
+                        <button onclick="toggleTheaterMode()" class="bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 p-2 rounded-xl transition" title="Toggle Theater Sizing">
+                            <i data-lucide="expand" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Pomodoro Timer Block -->
+                <div class="glass-panel rounded-2xl p-5 md:p-6 flex flex-col justify-between shadow-xl min-h-[300px]">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2">
+                                <i data-lucide="timer" class="w-4 h-4 text-pink-500"></i> Pomodoro Timer
+                            </h3>
+                            <!-- Mode badges -->
+                            <div class="flex gap-1 bg-black/30 p-1 rounded-lg text-[10px] border border-white/5">
+                                <button onclick="setTimerMode('work')" id="pomo-work" class="px-2 py-0.5 rounded-md font-medium bg-pink-500/20 text-pink-300">Work</button>
+                                <button onclick="setTimerMode('short')" id="pomo-short" class="px-2 py-0.5 rounded-md font-medium text-slate-400">Break</button>
+                                <button onclick="setTimerMode('long')" id="pomo-long" class="px-2 py-0.5 rounded-md font-medium text-slate-400">Long</button>
+                            </div>
+                        </div>
+
+                        <!-- Big Clock Display -->
+                        <div class="flex flex-col items-center justify-center py-6">
+                            <span id="timer-display" class="text-5xl md:text-6xl font-bold font-mono-custom tracking-wider text-slate-100 glow-accent">25:00</span>
+                            <span id="timer-status" class="text-xs text-slate-400 mt-2 font-medium">Keep your focus high</span>
+                        </div>
+                    </div>
+
+                    <!-- Timer Action Buttons -->
+                    <div class="flex gap-2">
+                        <button id="timer-play-pause" onclick="toggleTimer()" class="flex-grow bg-slate-100 hover:bg-white text-slate-950 font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+                            <i id="play-pause-icon" data-lucide="play" class="w-4 h-4"></i> <span id="play-pause-text">Start Focus Session</span>
+                        </button>
+                        <button onclick="resetTimer()" class="bg-white/5 hover:bg-white/10 text-slate-300 p-3 rounded-xl transition border border-white/10" title="Reset Session">
+                            <i data-lucide="rotate-ccw" class="w-4.5 h-4.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Immersive Focus Workspace Notepad -->
+                <div class="glass-panel rounded-2xl p-5 md:p-6 flex flex-col justify-between shadow-xl min-h-[300px]">
+                    <div class="flex flex-col h-full">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-sm font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2">
+                                <i data-lucide="edit-3" class="w-4 h-4 text-cyan-400"></i> Quick Scratchpad
+                            </h3>
+                            <span class="text-[10px] text-slate-500 flex items-center gap-1">
+                                <i data-lucide="save" class="w-3 h-3"></i> Autosaved
+                            </span>
+                        </div>
+                        
+                        <!-- Text Area -->
+                        <textarea id="workspace-notes" 
+                                  placeholder="Type down your thoughts, goals, ideas, or to-dos during study sessions..." 
+                                  class="w-full flex-grow bg-slate-950/40 text-slate-200 border border-white/5 rounded-xl p-3 text-sm focus:outline-none focus:border-cyan-500/50 resize-none placeholder-slate-500 font-sans leading-relaxed"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="lg:col-span-4 space-y-6">
+            
+            <!-- Focus Ambient Sounds Board -->
+            <div class="glass-panel rounded-2xl p-5 md:p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-sm font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4 text-violet-400"></i> Ambient Soundboard
+                    </h3>
+                    <button onclick="initToneAudio()" id="audio-enable-btn" class="text-xs bg-violet-600/30 text-violet-300 hover:bg-violet-600/50 border border-violet-500/30 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                        <i data-lucide="power" class="w-3 h-3"></i> Initialize Synth
+                    </button>
+                </div>
+
+                <!-- Synths Volume Knobs / Sliders -->
+                <div class="space-y-4">
+                    <!-- Rain / White Noise Sound Card -->
+                    <div class="bg-black/30 border border-white/5 rounded-xl p-3 flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-xs text-slate-300">
+                            <span class="flex items-center gap-2">
+                                <i data-lucide="cloud-rain" class="w-4 h-4 text-slate-400"></i> Gentle Rain Ambient
+                            </span>
+                            <span id="rain-vol-label" class="font-mono-custom text-slate-500">Muted</span>
+                        </div>
+                        <input type="range" id="rain-volume" min="0" max="1" step="0.01" value="0" 
+                               oninput="updateAmbientVolume('rain', this.value)"
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-violet-500">
+                    </div>
+
+                    <!-- Ambient Synth Pad Sound Card -->
+                    <div class="bg-black/30 border border-white/5 rounded-xl p-3 flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-xs text-slate-300">
+                            <span class="flex items-center gap-2">
+                                <i data-lucide="waves" class="w-4 h-4 text-violet-400"></i> Deep Drone Synth Pad
+                            </span>
+                            <span id="synth-vol-label" class="font-mono-custom text-slate-500">Muted</span>
+                        </div>
+                        <input type="range" id="synth-volume" min="0" max="1" step="0.01" value="0" 
+                               oninput="updateAmbientVolume('synth', this.value)"
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-violet-500">
+                    </div>
+
+                    <!-- Keyboard Tick Sound Toggle -->
+                    <div class="bg-black/30 border border-white/5 rounded-xl p-3 flex justify-between items-center text-xs text-slate-300">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="keyboard" class="w-4 h-4 text-pink-400"></i> Keyclick Sound FX
+                        </span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="keyclick-toggle" class="sr-only peer" onchange="toggleKeyclicks()">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-500"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-white/5 rounded-xl border border-white/5 text-[11px] text-slate-400 leading-relaxed">
+                    💡 **Did you know?** You can blend our high-fidelity procedural synth audio with the background music of your YouTube stream to craft the perfect personalized coding workspace!
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-5 md:p-6 shadow-xl flex flex-col h-[350px]">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2">
+                        <i data-lucide="list-music" class="w-4 h-4 text-violet-400"></i> Your Saved Playlist
+                    </h3>
+                    <button onclick="clearPlaylist()" class="text-[10px] text-red-400 hover:underline flex items-center gap-1">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i> Clear Playlist
+                    </button>
+                </div>
+
+                <!-- Scrollable Custom Playlist Area -->
+                <div id="playlist-container" class="space-y-2.5 overflow-y-auto flex-grow pr-1">
+                    <!-- Dynamic Items render here -->
+                </div>
+
+                <div class="pt-3 border-t border-white/5 mt-3">
+                    <p class="text-[10px] text-slate-400 text-center">Your curated playlists are automatically backed up to your browser cache.</p>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="mt-12 py-8 border-t border-white/5 bg-black/40 text-center text-slate-500 text-xs space-y-2">
+        <p>ZenTube Studio & Focus Hub &copy; 2026. Made to help you work, chill, study and scale.</p>
+        <div class="flex justify-center gap-4 text-slate-400">
+            <a href="#" class="hover:text-white transition">Features</a>
+            <span>&middot;</span>
+            <a href="#" class="hover:text-white transition">Tone Synthesis Docs</a>
+            <span>&middot;</span>
+            <a href="#" class="hover:text-white transition">Privacy Philosophy</a>
+        </div>
+    </footer>
+
+    <script>
+        // Core application state
+        let currentVideoId = "6hB3S9bIaco";
+        let currentVideoTitle = "Synthwave Lofi Beats (Lofi Girl)";
+        let playlist = [];
+
+        // Player Mode Status
+        let playerMode = 'youtube'; // 'youtube' or 'visualizer'
+        let canvasAnimationId = null;
+
+        // Timer State Variables
+        let timerInterval = null;
+        let timerMinutes = 25;
+        let timerSeconds = 0;
+        let timerMode = 'work'; // work, short, long
+        let isTimerRunning = false;
+
+        // Soundboard Tone.js variables
+        let toneInitialized = false;
+        let rainNoise = null;
+        let rainFilter = null;
+        let ambientSynth = null;
+        let synthInterval = null;
+
+        // Default list of recommended focus videos
+        const defaultVideos = [
+            { id: "6hB3S9bIaco", title: "Lofi Hip Hop Radio / Synthwave Beats" },
+            { id: "jfKfPfyJRdk", title: "Lofi Girl - Hip Hop Beats to Relax/Study" },
+            { id: "S_MOd407g2g", title: "Cozy Coffee Shop Ambience & Jazz Music" },
+            { id: "5qap5aO4i9A", title: "Lofi Hip Hop - Chill Beats for Programming" }
+        ];
+
+        window.onload = function() {
+            // Initialize lucide icons
+            lucide.createIcons();
+            
+            // Load custom notes and playlist cache
+            loadSavedNotes();
+            loadPlaylistCache();
+            renderPlaylist();
+
+            // Setup Youtube form submit listener
+            document.getElementById('url-loader-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                loadVideoFromInput();
+            });
+
+            // Setup notes auto-save to localstorage on keystrokes
+            document.getElementById('workspace-notes').addEventListener('input', function(e) {
+                localStorage.setItem('zentube_focus_notes', e.target.value);
+            });
+            
+            // Setup global key click sound feedback listener if checked
+            window.addEventListener('keydown', playKeyclickFeedback);
+
+            // Handle responsive canvas resizing
+            window.addEventListener('resize', handleCanvasResize);
+        };
+
+        // Custom toast helper
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.innerText = message;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex', 'animate-bounce');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex', 'animate-bounce');
+            }, duration);
+        }
+
+        function parseYoutubeUrl(url) {
+            if (!url) return null;
+            
+            // Handle if they paste just the video ID
+            if (url.length === 11 && !url.includes('/') && !url.includes('.')) {
+                return url;
+            }
+
+            // Regular expression matching Youtube URLs
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // Action when client loads video via custom Input
+        function loadVideoFromInput() {
+            const inputField = document.getElementById('yt-url-input');
+            const rawUrl = inputField.value.trim();
+
+            if (!rawUrl) {
+                showToast("Please enter a valid YouTube URL first!");
+                return;
+            }
+
+            const videoId = parseYoutubeUrl(rawUrl);
+
+            if (videoId) {
+                // Update workspace embed state
+                embedVideo(videoId, "Custom Loaded Video Stream");
+                inputField.value = "";
+                showToast("YouTube video loaded successfully!");
+            } else {
+                showToast("Could not parse Video ID. Please check the URL and try again!");
+            }
+        }
+
+        // Load specific video ID directly into iframe using youtube-nocookie and explicit trusted origins
+        function embedVideo(videoId, title) {
+            currentVideoId = videoId;
+            currentVideoTitle = title === "Custom Loaded Video Stream" ? `Video Stream (${videoId})` : title;
+
+            const player = document.getElementById('main-embed-player');
+            
+            // strict referrerpolicy on the element matched with nocookie source loads reliably inside sandbox iFrames
+            player.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+            
+            // Update the auxiliary open button's URL
+            const externalLink = document.getElementById('external-video-link');
+            externalLink.href = `https://youtube.com/watch?v=${videoId}`;
+
+            document.getElementById('current-video-title').innerText = currentVideoTitle;
+            showToast(`Streaming: ${currentVideoTitle}`);
+
+            // Always revert screen mode to video when loading a new clip
+            setPlayerMode('youtube');
+        }
+
+        // Player UI Mode Toggler (YouTube Player vs Starfield Canvas fallback)
+        function setPlayerMode(mode) {
+            playerMode = mode;
+            const playerIframe = document.getElementById('main-embed-player');
+            const visualizerCanvas = document.getElementById('ambient-visualizer');
+            const ytBtn = document.getElementById('btn-mode-youtube');
+            const visBtn = document.getElementById('btn-mode-visualizer');
+
+            if (mode === 'youtube') {
+                playerIframe.classList.remove('hidden');
+                visualizerCanvas.classList.add('hidden');
+                
+                ytBtn.className = "px-2.5 py-1 text-[11px] rounded-md font-medium transition focus:outline-none bg-violet-600/30 text-violet-300 border border-violet-500/30";
+                visBtn.className = "px-2.5 py-1 text-[11px] rounded-md font-medium transition focus:outline-none text-slate-400 hover:text-slate-200";
+
+                if (canvasAnimationId) {
+                    cancelAnimationFrame(canvasAnimationId);
+                    canvasAnimationId = null;
+                }
+            } else {
+                playerIframe.classList.add('hidden');
+                visualizerCanvas.classList.remove('hidden');
+
+                visBtn.className = "px-2.5 py-1 text-[11px] rounded-md font-medium transition focus:outline-none bg-violet-600/30 text-violet-300 border border-violet-500/30";
+                ytBtn.className = "px-2.5 py-1 text-[11px] rounded-md font-medium transition focus:outline-none text-slate-400 hover:text-slate-200";
+
+                handleCanvasResize();
+                startVisualizerLoop();
+                showToast("Ambient space generator online!");
+            }
+        }
+
+        // Interactive Generative Starfield Visualizer (100% Sandbox Compatible Alternative)
+        let stars = [];
+        function handleCanvasResize() {
+            const canvas = document.getElementById('ambient-visualizer');
+            if (canvas && !canvas.classList.contains('hidden')) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+                initStars(canvas.width, canvas.height);
+            }
+        }
+
+        function initStars(width, height) {
+            stars = [];
+            const count = 120;
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * width - width / 2,
+                    y: Math.random() * height - height / 2,
+                    z: Math.random() * width,
+                    color: i % 2 === 0 ? '#a78bfa' : '#f43f5e'
+                });
+            }
+        }
+
+        function startVisualizerLoop() {
+            const canvas = document.getElementById('ambient-visualizer');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            if (canvasAnimationId) {
+                cancelAnimationFrame(canvasAnimationId);
+            }
+
+            function animate() {
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                ctx.fillStyle = 'rgba(8, 8, 16, 0.2)';
+                ctx.fillRect(0, 0, width, height);
+
+                ctx.strokeStyle = 'rgba(139, 92, 246, 0.15)';
+                ctx.lineWidth = 1;
+                const horizon = height * 0.65;
+                ctx.beginPath();
+                ctx.moveTo(0, horizon);
+                ctx.lineTo(width, horizon);
+                ctx.stroke();
+
+                let speedScale = 1.0;
+                if (toneInitialized && ambientSynth && ambientSynth.volumeNode.volume.value > -40) {
+                    speedScale = 2.4;
+                }
+
+                const gridOffset = (Date.now() * 0.05 * speedScale) % 40;
+                for (let y = horizon; y < height; y += 15) {
+                    const relativeY = y + gridOffset;
+                    if (relativeY < height) {
+                        ctx.strokeStyle = `rgba(139, 92, 246, ${((relativeY - horizon) / (height - horizon)) * 0.25})`;
+                        ctx.beginPath();
+                        ctx.moveTo(0, relativeY);
+                        ctx.lineTo(width, relativeY);
+                        ctx.stroke();
+                    }
+                }
+                
+                const centerX = width / 2;
+                for (let x = -width; x < width * 2; x += 60) {
+                    ctx.strokeStyle = 'rgba(139, 92, 246, 0.08)';
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, horizon);
+                    ctx.lineTo(x, height);
+                    ctx.stroke();
+                }
+
+                for (let i = 0; i < stars.length; i++) {
+                    let s = stars[i];
+                    s.z -= 2 * speedScale;
+
+                    if (s.z <= 0) {
+                        s.z = width;
+                        s.x = Math.random() * width - width / 2;
+                        s.y = Math.random() * height - height / 2;
+                    }
+
+                    const px = (s.x / s.z) * width/2 + width / 2;
+                    const py = (s.y / s.z) * height/2 + height / 2;
+                    const size = (1 - s.z / width) * 4;
+
+                    if (px >= 0 && px <= width && py >= 0 && py <= height) {
+                        ctx.fillStyle = s.color;
+                        ctx.beginPath();
+                        ctx.arc(px, py, Math.max(0.5, size), 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                canvasAnimationId = requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        function loadPlaylistCache() {
+            const cached = localStorage.getItem('zentube_saved_playlist');
+            if (cached) {
+                try {
+                    playlist = JSON.parse(cached);
+                } catch(e) {
+                    playlist = [...defaultVideos];
+                }
+            } else {
+                playlist = [...defaultVideos];
+                savePlaylistToCache();
+            }
+        }
+
+        function savePlaylistToCache() {
+            localStorage.setItem('zentube_saved_playlist', JSON.stringify(playlist));
+        }
+
+        function renderPlaylist() {
+            const container = document.getElementById('playlist-container');
+            container.innerHTML = "";
+
+            if (playlist.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-slate-500 py-6">
+                        <i data-lucide="music" class="w-8 h-8 opacity-40 mb-2"></i>
+                        <p class="text-xs">Your playlist is empty.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            playlist.forEach((track, index) => {
+                const isCurrent = track.id === currentVideoId;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${isCurrent ? 'bg-violet-600/20 border-violet-500/40' : 'bg-slate-950/40 border-white/5 hover:bg-white/5'}`;
+                
+                card.innerHTML = `
+                    <div onclick="embedVideo('${track.id}', '${track.title.replace(/'/g, "\\'")}')" class="flex items-center gap-3 cursor-pointer flex-grow overflow-hidden">
+                        <div class="relative w-12 h-8 rounded-lg bg-slate-900 border border-white/10 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                            <img src="https://img.youtube.com/vi/${track.id}/hqdefault.jpg" class="object-cover w-full h-full" onerror="this.style.display='none';">
+                            <i data-lucide="play-circle" class="absolute w-4 h-4 text-white opacity-80"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h4 class="text-xs font-semibold truncate ${isCurrent ? 'text-violet-300' : 'text-slate-200'}">${track.title}</h4>
+                            <p class="text-[10px] text-slate-500 font-mono-custom">${track.id}</p>
+                        </div>
+                    </div>
+                    <button onclick="removePlaylistTrack(${index})" class="text-slate-500 hover:text-red-400 p-1.5 rounded-lg transition ml-2">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        function saveCurrentToPlaylist() {
+            if (playlist.some(track => track.id === currentVideoId)) {
+                showToast("Track already saved in your Playlist!");
+                return;
+            }
+
+            playlist.push({
+                id: currentVideoId,
+                title: currentVideoTitle
+            });
+            savePlaylistToCache();
+            renderPlaylist();
+            showToast("Added current video stream to active playlist!");
+        }
+
+        function removePlaylistTrack(index) {
+            playlist.splice(index, 1);
+            savePlaylistToCache();
+            renderPlaylist();
+            showToast("Removed stream from playlist.");
+        }
+
+        function clearPlaylist() {
+            playlist = [];
+            savePlaylistToCache();
+            renderPlaylist();
+            showToast("Cleared focus playlist cache!");
+        }
+
+        function setTimerMode(mode) {
+            if (isTimerRunning) {
+                toggleTimer();
+            }
+
+            timerMode = mode;
+            
+            document.getElementById('pomo-work').className = "px-2 py-0.5 rounded-md font-medium " + (mode === 'work' ? 'bg-pink-500/20 text-pink-300' : 'text-slate-400');
+            document.getElementById('pomo-short').className = "px-2 py-0.5 rounded-md font-medium " + (mode === 'short' ? 'bg-pink-500/20 text-pink-300' : 'text-slate-400');
+            document.getElementById('pomo-long').className = "px-2 py-0.5 rounded-md font-medium " + (mode === 'long' ? 'bg-pink-500/20 text-pink-300' : 'text-slate-400');
+
+            if (mode === 'work') {
+                timerMinutes = 25;
+                document.getElementById('timer-status').innerText = "Keep your focus high";
+            } else if (mode === 'short') {
+                timerMinutes = 5;
+                document.getElementById('timer-status').innerText = "Quick stretch, grab some water";
+            } else {
+                timerMinutes = 15;
+                document.getElementById('timer-status').innerText = "Chill out, step away for a bit";
+            }
+            timerSeconds = 0;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const minStr = String(timerMinutes).padStart(2, '0');
+            const secStr = String(timerSeconds).padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${minStr}:${secStr}`;
+        }
+
+        function toggleTimer() {
+            const btnText = document.getElementById('play-pause-text');
+            const btnIcon = document.getElementById('play-pause-icon');
+
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btnText.innerText = "Resume Session";
+                btnIcon.setAttribute('data-lucide', 'play');
+                lucide.createIcons();
+            } else {
+                isTimerRunning = true;
+                btnText.innerText = "Pause Session";
+                btnIcon.setAttribute('data-lucide', 'pause');
+                lucide.createIcons();
+
+                timerInterval = setInterval(() => {
+                    if (timerSeconds === 0) {
+                        if (timerMinutes === 0) {
+                            clearInterval(timerInterval);
+                            isTimerRunning = false;
+                            btnText.innerText = "Start Focus Session";
+                            btnIcon.setAttribute('data-lucide', 'play');
+                            lucide.createIcons();
+                            
+                            triggerSessionCompletionSound();
+                            showToast(`🍅 Focus timer finished! Time for a well-deserved break.`);
+                            return;
+                        }
+                        timerMinutes--;
+                        timerSeconds = 59;
+                    } else {
+                        timerSeconds--;
+                    }
+                    updateTimerDisplay();
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            if (isTimerRunning) {
+                toggleTimer();
+            }
+            setTimerMode(timerMode);
+            showToast("Reset session timer.");
+        }
+
+        function initToneAudio() {
+            if (toneInitialized) {
+                showToast("Ambient audio already initialized!");
+                return;
+            }
+
+            try {
+                Tone.start();
+
+                rainNoise = new Tone.Noise("pink").start();
+                rainFilter = new Tone.Filter({
+                    type: "bandpass",
+                    frequency: 350,
+                    Q: 0.8
+                });
+                
+                const rainLFO = new Tone.LFO(0.05, 200, 500).start();
+                rainLFO.connect(rainFilter.frequency);
+
+                const rainVolumeNode = new Tone.Volume(-Infinity);
+                rainNoise.chain(rainFilter, rainVolumeNode, Tone.Destination);
+                rainNoise.volumeNode = rainVolumeNode;
+
+                ambientSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 3, decay: 2, sustain: 0.8, release: 4 }
+                });
+                
+                const synthFilter = new Tone.Filter(300, "lowpass");
+                const synthVolumeNode = new Tone.Volume(-Infinity);
+                ambientSynth.chain(synthFilter, synthVolumeNode, Tone.Destination);
+                ambientSynth.volumeNode = synthVolumeNode;
+
+                const chords = [
+                    ["A2", "E3", "G3", "C4"],
+                    ["F2", "C3", "E3", "A3"],
+                    ["D2", "A2", "C3", "F3"],
+                    ["E2", "B2", "D3", "G3"]
+                ];
+                let chordIdx = 0;
+
+                synthInterval = setInterval(() => {
+                    if (ambientSynth.volumeNode.volume.value > -40) {
+                        ambientSynth.triggerAttackRelease(chords[chordIdx % chords.length], 6);
+                        chordIdx++;
+                    }
+                }, 8000);
+
+                ambientSynth.triggerAttackRelease(chords[0], 6);
+
+                toneInitialized = true;
+                
+                const btn = document.getElementById('audio-enable-btn');
+                btn.className = "text-xs bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-lg flex items-center gap-1";
+                btn.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Connected`;
+                lucide.createIcons();
+
+                showToast("Ambient Soundboard synthesis successfully online!");
+            } catch (err) {
+                console.error("Tone.js Init Error:", err);
+                showToast("Audio system setup failed. Interaction may be required first.");
+            }
+        }
+
+        function updateAmbientVolume(sound, value) {
+            if (!toneInitialized) {
+                initToneAudio();
+            }
+
+            let dbValue = -Infinity;
+            if (value > 0) {
+                dbValue = Tone.gainToDb(value * 0.5);
+            }
+
+            if (sound === 'rain' && rainNoise) {
+                rainNoise.volumeNode.volume.rampTo(dbValue, 0.2);
+                document.getElementById('rain-vol-label').innerText = value > 0 ? `${Math.round(value * 100)}%` : "Muted";
+            } else if (sound === 'synth' && ambientSynth) {
+                ambientSynth.volumeNode.volume.rampTo(dbValue, 0.5);
+                document.getElementById('synth-vol-label').innerText = value > 0 ? `${Math.round(value * 100)}%` : "Muted";
+            }
+        }
+
+        function toggleKeyclicks() {
+            if (!toneInitialized) {
+                initToneAudio();
+            }
+        }
+
+        function playKeyclickFeedback(e) {
+            const checked = document.getElementById('keyclick-toggle').checked;
+            if (!checked || !toneInitialized) return;
+
+            const clickSynth = new Tone.NoiseSynth({
+                noise: { type: "white" },
+                envelope: { attack: 0.001, decay: 0.01, sustain: 0 }
+            }).toDestination();
+            
+            clickSynth.volume.value = -12;
+            clickSynth.triggerAttackRelease("16n");
+        }
+
+        function triggerSessionCompletionSound() {
+            if (!toneInitialized) return;
+            
+            const chime = new Tone.Synth({
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.8 }
+            }).toDestination();
+            
+            const now = Tone.now();
+            chime.triggerAttackRelease("C5", "8n", now);
+            chime.triggerAttackRelease("E5", "8n", now + 0.15);
+            chime.triggerAttackRelease("G5", "8n", now + 0.3);
+            chime.triggerAttackRelease("C6", "4n", now + 0.45);
+        }
+
+        function switchTheme(themeName) {
+            document.body.className = `${themeName} min-h-screen text-slate-100 transition-colors duration-700 ease-in-out`;
+            
+            const themes = ['theme-synthwave', 'theme-cyberpunk', 'theme-forest', 'theme-nord'];
+            themes.forEach(theme => {
+                const btn = document.getElementById(`btn-${theme}`);
+                if (theme === themeName) {
+                    btn.className = "px-3 py-1 text-xs rounded-lg transition font-medium focus:outline-none bg-violet-600/20 text-violet-300 border border-violet-500/30";
+                } else {
+                    btn.className = "px-3 py-1 text-xs rounded-lg transition font-medium focus:outline-none text-slate-400 hover:text-white";
+                }
+            });
+
+            showToast(`Vibe switched to ${themeName.split('-')[1].toUpperCase()} space!`);
+        }
+
+        function toggleTheaterMode() {
+            const playerContainer = document.getElementById('main-embed-player').closest('.aspect-video');
+            if (playerContainer) {
+                playerContainer.classList.remove('aspect-video');
+                playerContainer.classList.add('aspect-[21/9]');
+                showToast("Theater ratio mode enabled");
+            } else {
+                const alternateContainer = document.getElementById('main-embed-player').closest('.aspect-\\[21\\/9\\]');
+                if (alternateContainer) {
+                    alternateContainer.classList.remove('aspect-[21/9]');
+                    alternateContainer.classList.add('aspect-video');
+                    showToast("Standard aspect ratio restored");
+                }
+            }
+        }
+
+        function loadSavedNotes() {
+            const notes = localStorage.getItem('zentube_focus_notes');
+            if (notes) {
+                document.getElementById('workspace-notes').value = notes;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -746,8 +746,8 @@
 </div>
 
 <!-- ── Game-over modal ── -->
-<div id="gameOverModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden p-6">
-    <div class="glass-card max-w-lg w-full p-9 text-center space-y-7 modal-animate" style="border-color:var(--border-strong)">
+<div id="gameOverModal" class="fixed inset-0 z-[100] flex items-start justify-center hidden p-6 overflow-y-auto">
+    <div class="glass-card max-w-lg w-full p-9 text-center space-y-7 modal-animate" style="border-color:var(--border-strong);max-height:90vh;overflow-y:auto;margin:auto 0;">
         <div id="trailerContainer" class="hidden rounded-xl overflow-hidden" style="position:relative;padding-bottom:56.25%;height:0;">
             <iframe id="trailerIframe" src="" frameborder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

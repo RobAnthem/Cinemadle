@@ -1050,7 +1050,10 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         guessedTitles = new Set(); hintVibeUsed = false; hintContextUsed = false;
         hintsUnlockToastShown = false; kbdIdx = -1;
 
-        const pool = movieDB.filter(m => m.Difficulty === currentDifficulty && (currentDifficulty !== 'Easy Mode' || !m.Year || m.Year >= 1980));
+        const isEasy = currentDifficulty === 'Easy Mode';
+        const pool = movieDB.filter(m => m.Difficulty === currentDifficulty
+            && (!isEasy || !m.Year || m.Year >= 1980)
+            && (!isEasy || !/(korean|india[nn]?|hindi|bollywood)/i.test(`${m.Country} ${m.Language}`)));
         if (!pool.length) { showToast('No movies for this difficulty!'); return; }
         targetMovie = pool[Math.floor(Math.random() * pool.length)];
         currentEmojis = Array.from(segmenter.segment(targetMovie.Emojis), s => s.segment);

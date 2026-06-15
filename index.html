@@ -754,11 +754,16 @@
 
 <!-- ── Game-over modal ── -->
 <div id="gameOverModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden p-6">
-    <div class="glass-card max-w-lg w-full p-9 text-center space-y-7 modal-animate" style="border-color:var(--border-strong)">
+    <div class="glass-card max-w-lg w-full p-9 text-center space-y-7 modal-animate custom-scrollbar" style="border-color:var(--border-strong);max-height:92vh;overflow-y:auto">
         <h2 id="modalTitle" class="text-5xl font-black italic tracking-tighter">RESULT</h2>
         <div class="space-y-3">
             <p class="section-label">The Movie Was</p>
             <p id="targetMovieTitle" class="text-3xl font-black leading-tight" style="color:var(--text-primary)"></p>
+            <div id="modalTrailerWrap" class="hidden rounded-xl overflow-hidden" style="aspect-ratio:16/9;border:1px solid var(--border)">
+                <iframe id="modalTrailer" class="w-full h-full" src="" title="Trailer"
+                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <img id="modalPoster" class="hidden mx-auto rounded-xl" style="max-height:280px;border:1px solid var(--border)" alt="">
             <div id="targetMovieMeta" class="p-4 rounded-xl text-sm font-bold leading-relaxed"
                 style="background:var(--surface);border:1px solid var(--border);color:var(--text-secondary)"></div>
             <div id="modalEmojis" class="emoji-box text-3xl pt-1 justify-center"></div>
@@ -790,6 +795,14 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
 
     const cleanTitle      = s => s ? s.trim() : '';
     const normalizeString = s => s ? s.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+
+    // ── Trailer helper ──
+    function youtubeEmbedUrl(url) {
+        if (!url) return null;
+        const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+        if (!m) return null;
+        return `https://www.youtube.com/embed/${m[1]}`;
+    }
 
     // ── Emoji helpers ──
     function emojiName(g) {
@@ -852,6 +865,8 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
                             Emojis:        (m.Emojis      || '').trim(),
                             Rating:        (m.Language     || '').trim(),
                             Country:       (m.Country      || '').trim(),
+                            PosterURL:     (m.PosterURL    || '').trim(),
+                            TrailerURL:    (m.TrailerURL   || '').trim(),
                             Difficulties:  diffs,
                         };
                     }).filter(m => m.Title && m.Difficulties.length);
@@ -1031,6 +1046,9 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
         currentEmojis = Array.from(segmenter.segment(targetMovie.Emojis), s => s.segment);
 
         document.getElementById('gameOverModal').classList.add('hidden');
+        document.getElementById('modalTrailer').src = '';
+        document.getElementById('modalTrailerWrap').classList.add('hidden');
+        document.getElementById('modalPoster').classList.add('hidden');
         document.getElementById('summaryPanel').classList.add('hidden');
         ['genreSummary','yearSummary','studioSummary','scoreSummary','ratingSummary','countrySummary']
             .forEach(id => document.getElementById(id).innerHTML = '');
@@ -1505,6 +1523,30 @@ const EMOJI_NAMES = {"⌚": "Watch", "⌛": "Hourglass", "⌨": "Keyboard", "⏩
             ? 'text-5xl font-black italic tracking-tighter text-green-400'
             : 'text-5xl font-black italic tracking-tighter text-red-400';
         document.getElementById('targetMovieTitle').textContent = targetMovie.Title;
+
+        // Trailer
+        const trailerWrap = document.getElementById('modalTrailerWrap');
+        const trailerEl = document.getElementById('modalTrailer');
+        const embedUrl = youtubeEmbedUrl(targetMovie.TrailerURL);
+        if (embedUrl) {
+            trailerEl.src = embedUrl;
+            trailerWrap.classList.remove('hidden');
+        } else {
+            trailerEl.src = '';
+            trailerWrap.classList.add('hidden');
+        }
+
+        // Poster
+        const posterEl = document.getElementById('modalPoster');
+        if (targetMovie.PosterURL) {
+            posterEl.src = targetMovie.PosterURL;
+            posterEl.alt = targetMovie.Title;
+            posterEl.classList.remove('hidden');
+        } else {
+            posterEl.src = '';
+            posterEl.classList.add('hidden');
+        }
+
         const meta = [targetMovie.Year, targetMovie.Genres, targetMovie.Studio,
             targetMovie.Rating, targetMovie.Country,
             targetMovie.CriticScore!==null ? `★ ${targetMovie.CriticScore} TMDB` : null
